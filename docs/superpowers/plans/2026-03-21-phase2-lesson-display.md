@@ -56,23 +56,32 @@ tests/
 Create `tests/models/schema.test.ts`:
 
 ```typescript
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterAll } from "vitest";
 import { prisma } from "@/lib/prisma";
 
 describe("Database schema", () => {
+  const cleanupIds: { lessons: string[]; topics: string[] } = { lessons: [], topics: [] };
+
+  afterAll(async () => {
+    await prisma.lesson.deleteMany({ where: { id: { in: cleanupIds.lessons } } });
+    // Delete children first (order matters for FK constraints)
+    await prisma.topic.deleteMany({ where: { id: { in: cleanupIds.topics } } });
+  });
+
   it("can create and query a topic", async () => {
     const topic = await prisma.topic.create({
       data: { name: "Test Topic", description: "A test topic" },
     });
+    cleanupIds.topics.push(topic.id);
     expect(topic.id).toBeDefined();
     expect(topic.name).toBe("Test Topic");
-    await prisma.topic.delete({ where: { id: topic.id } });
   });
 
   it("can create a lesson linked to a topic", async () => {
     const topic = await prisma.topic.create({
       data: { name: "Lesson Test Topic", description: "For lesson test" },
     });
+    cleanupIds.topics.push(topic.id);
     const lesson = await prisma.lesson.create({
       data: {
         title: "Test Lesson",
@@ -82,10 +91,9 @@ describe("Database schema", () => {
         topicId: topic.id,
       },
     });
+    cleanupIds.lessons.push(lesson.id);
     expect(lesson.id).toBeDefined();
     expect(lesson.topicId).toBe(topic.id);
-    await prisma.lesson.delete({ where: { id: lesson.id } });
-    await prisma.topic.delete({ where: { id: topic.id } });
   });
 
   it("supports self-referencing topic hierarchy", async () => {
@@ -95,13 +103,12 @@ describe("Database schema", () => {
     const child = await prisma.topic.create({
       data: { name: "Child Topic", description: "Child", parentTopicId: parent.id },
     });
+    cleanupIds.topics.push(child.id, parent.id);
     const fetched = await prisma.topic.findUnique({
       where: { id: child.id },
       include: { parentTopic: true },
     });
     expect(fetched?.parentTopic?.id).toBe(parent.id);
-    await prisma.topic.delete({ where: { id: child.id } });
-    await prisma.topic.delete({ where: { id: parent.id } });
   });
 });
 ```
@@ -634,6 +641,7 @@ export async function GET(
         topic: {
           include: { parentTopic: true },
         },
+        // TODO: include quiz ID when Quiz model is added (Phase 3)
       },
     });
 
@@ -680,13 +688,7 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 - Create: `src/components/TopicCard.tsx`
 - Modify: `src/app/page.tsx` — redirect or link to topics
 
-- [ ] **Step 1: Install react-markdown for lesson rendering (needed in Task 5)**
-
-```bash
-npm install react-markdown
-```
-
-- [ ] **Step 2: Create TopicCard component**
+- [ ] **Step 1: Create TopicCard component**
 
 Create `src/components/TopicCard.tsx`:
 
@@ -756,7 +758,7 @@ export default async function TopicsPage() {
 }
 ```
 
-- [ ] **Step 4: Update home page to link to topics**
+- [ ] **Step 3: Update home page to link to topics**
 
 Replace `src/app/page.tsx`:
 
@@ -779,7 +781,7 @@ export default function Home() {
 }
 ```
 
-- [ ] **Step 5: Verify build and test**
+- [ ] **Step 4: Verify build and test**
 
 ```bash
 npm run build && npm test
@@ -787,10 +789,10 @@ npm run build && npm test
 
 Expected: Both pass.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add src/app/page.tsx src/app/topics/ src/components/TopicCard.tsx package.json package-lock.json
+git add src/app/page.tsx src/app/topics/ src/components/TopicCard.tsx
 git commit -m "feat: add topic listing page with TopicCard component
 
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
@@ -807,7 +809,13 @@ Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 - Create: `src/components/LessonContent.tsx`
 - Create: `src/components/TopicSidebar.tsx`
 
-- [ ] **Step 1: Create LessonCard component**
+- [ ] **Step 1: Install dependencies for lesson rendering**
+
+```bash
+npm install react-markdown @tailwindcss/typography
+```
+
+- [ ] **Step 2: Create LessonCard component**
 
 Create `src/components/LessonCard.tsx`:
 
@@ -838,7 +846,7 @@ export function LessonCard({ id, title, order, difficultyLevel }: LessonCardProp
 }
 ```
 
-- [ ] **Step 2: Create TopicSidebar component**
+- [ ] **Step 3: Create TopicSidebar component**
 
 Create `src/components/TopicSidebar.tsx`:
 
@@ -899,7 +907,7 @@ export function TopicSidebar({ topics, currentTopicId }: TopicSidebarProps) {
 }
 ```
 
-- [ ] **Step 3: Create LessonContent component**
+- [ ] **Step 4: Create LessonContent component**
 
 Create `src/components/LessonContent.tsx`:
 
@@ -919,7 +927,7 @@ export function LessonContent({ content }: LessonContentProps) {
 }
 ```
 
-- [ ] **Step 4: Create topic detail page**
+- [ ] **Step 5: Create topic detail page**
 
 Create `src/app/topics/[id]/page.tsx`:
 
@@ -967,14 +975,14 @@ export default async function TopicPage({ params }: { params: Promise<{ id: stri
             <h2 className="text-xl font-semibold">Subtopics</h2>
             <div className="mt-4 grid gap-3">
               {topic.childTopics.map((child) => (
-                <a
+                <Link
                   key={child.id}
                   href={`/topics/${child.id}`}
-                  className="rounded-lg border border-gray-200 p-4 hover:border-blue-500 transition-colors"
+                  className="block rounded-lg border border-gray-200 p-4 hover:border-blue-500 transition-colors"
                 >
                   <h3 className="font-medium">{child.name}</h3>
                   <p className="mt-1 text-sm text-gray-500">{child.description}</p>
-                </a>
+                </Link>
               ))}
             </div>
           </section>
@@ -1002,7 +1010,7 @@ export default async function TopicPage({ params }: { params: Promise<{ id: stri
 }
 ```
 
-- [ ] **Step 5: Create lesson display page**
+- [ ] **Step 6: Create lesson display page**
 
 Create `src/app/lessons/[id]/page.tsx`:
 
@@ -1059,7 +1067,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
 }
 ```
 
-- [ ] **Step 6: Verify build and tests**
+- [ ] **Step 7: Verify build and tests**
 
 ```bash
 npm run build && npm test
@@ -1067,10 +1075,10 @@ npm run build && npm test
 
 Expected: Both pass.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add src/app/topics/ src/app/lessons/ src/components/
+git add src/app/topics/ src/app/lessons/ src/components/ package.json package-lock.json
 git commit -m "feat: add topic detail and lesson display pages with sidebar navigation
 
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
@@ -1135,13 +1143,9 @@ export default function RootLayout({
 }
 ```
 
-- [ ] **Step 2: Install @tailwindcss/typography for prose styles**
+- [ ] **Step 2: Add typography plugin to Tailwind config**
 
-```bash
-npm install @tailwindcss/typography
-```
-
-Then add it to your Tailwind config. If using Tailwind v4 with CSS-based config, add to `src/app/globals.css`:
+If using Tailwind v4 with CSS-based config, add to `src/app/globals.css`:
 
 ```css
 @import "tailwindcss";
@@ -1153,6 +1157,8 @@ If using `tailwind.config.ts`, add to plugins array:
 ```typescript
 plugins: [require("@tailwindcss/typography")],
 ```
+
+Note: `@tailwindcss/typography` was already installed in Task 5.
 
 - [ ] **Step 3: Verify build and tests**
 
