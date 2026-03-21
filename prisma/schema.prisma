@@ -36,8 +36,33 @@ model Lesson {
   difficultyLevel Int      @map("difficulty_level")
   order           Int
   topicId         String   @map("topic_id")
-  topic           Topic    @relation(fields: [topicId], references: [id])
-  createdAt       DateTime @default(now()) @map("created_at")
+  topic           Topic              @relation(fields: [topicId], references: [id])
+  conversations   ChatConversation[]
+  createdAt       DateTime           @default(now()) @map("created_at")
 
   @@map("lessons")
+}
+
+model ChatConversation {
+  id        String        @id @default(cuid())
+  userId    String        @map("user_id")
+  lessonId  String        @map("lesson_id")
+  lesson    Lesson        @relation(fields: [lessonId], references: [id])
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  @@unique([userId, lessonId])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String           @map("conversation_id")
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id])
+  role           String
+  content        String
+  createdAt      DateTime         @default(now()) @map("created_at")
+
+  @@map("chat_messages")
 }
