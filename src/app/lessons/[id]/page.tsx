@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { TopicSidebar } from "@/components/TopicSidebar";
 import { LessonContent } from "@/components/LessonContent";
+import { ChatPanel } from "@/components/ChatPanel";
 
 export default async function LessonPage({
   params,
@@ -77,6 +78,8 @@ export default async function LessonPage({
           </div>
         </div>
       </div>
+
+      <ChatPanel lessonId={id} />
     </main>
   );
 }
