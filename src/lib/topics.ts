@@ -18,7 +18,7 @@ export async function wouldCreateCycle(
     if (visited.has(currentId)) return true; // already a cycle in the data
     visited.add(currentId);
 
-    const topic = await prisma.topic.findUnique({
+    const topic: { parentTopicId: string | null } | null = await prisma.topic.findUnique({
       where: { id: currentId },
       select: { parentTopicId: true },
     });
