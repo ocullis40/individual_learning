@@ -119,14 +119,14 @@ export function ChatPanel({ lessonId }: { lessonId: string }) {
   // Collapsed bar
   if (!isOpen) {
     return (
-      <div
-        className="fixed bottom-0 left-0 right-0 z-50 cursor-pointer border-t border-gray-200 bg-gray-50 px-6 py-3 transition-colors hover:bg-gray-100"
-        onClick={() => setIsOpen(true)}
-      >
-        <div className="mx-auto flex max-w-4xl items-center gap-2 text-sm text-gray-500">
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-6 py-4 shadow-lg transition-all hover:shadow-xl hover:border-blue-300"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
+            className="h-6 w-6 text-blue-600"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -138,15 +138,15 @@ export function ChatPanel({ lessonId }: { lessonId: string }) {
               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
             />
           </svg>
-          Ask a question about this lesson...
-        </div>
+          <span className="text-base font-medium text-gray-700">Ask a question about this lesson</span>
+        </button>
       </div>
     );
   }
 
   // Expanded drawer
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex h-[40vh] flex-col border-t border-gray-300 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+    <div className="fixed bottom-4 right-6 z-50 flex h-[45vh] w-[420px] flex-col rounded-2xl border border-gray-200 bg-white shadow-2xl">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 px-6 py-3">
         <h2 className="text-sm font-semibold text-gray-700">Lesson Chat</h2>
@@ -201,21 +201,21 @@ export function ChatPanel({ lessonId }: { lessonId: string }) {
       </div>
 
       {/* Input */}
-      <div className="border-t border-gray-200 px-6 py-3">
-        <div className="mx-auto flex max-w-3xl gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your question..."
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            disabled={isLoading}
-          />
+      <div className="border-t border-gray-200 px-4 py-3">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type your question..."
+          rows={3}
+          className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          disabled={isLoading}
+        />
+        <div className="mt-2 flex justify-end">
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-blue-600 px-5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Send
           </button>
