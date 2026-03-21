@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { TopicSidebar } from "@/components/TopicSidebar";
 import { LessonContent } from "@/components/LessonContent";
+import { ChatPanel } from "@/components/ChatPanel";
 
 export default async function LessonPage({
   params,
@@ -34,7 +35,7 @@ export default async function LessonPage({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
+    <main className="mr-[450px] max-w-6xl py-12 pl-16 pr-4">
       <div className="flex gap-8">
         <TopicSidebar topics={allTopics} currentTopicId={lesson.topicId} />
 
@@ -77,6 +78,8 @@ export default async function LessonPage({
           </div>
         </div>
       </div>
+
+      <ChatPanel lessonId={id} />
     </main>
   );
 }
