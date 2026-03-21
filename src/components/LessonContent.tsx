@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface LessonContentProps {
   content: string;
@@ -7,7 +8,7 @@ interface LessonContentProps {
 export function LessonContent({ content }: LessonContentProps) {
   return (
     <article className="prose prose-lg max-w-none">
-      <ReactMarkdown>{content}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </article>
   );
 }
