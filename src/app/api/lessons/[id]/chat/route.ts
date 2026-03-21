@@ -91,16 +91,20 @@ export async function POST(
     }
 
     const systemPrompt = `You are a knowledgeable tutor helping a student understand the following lesson content.
-Answer questions clearly and concisely, referencing the lesson material when relevant.
-If the student asks about something not covered in the lesson, you may provide additional
-context but note that it goes beyond the current lesson.
+
+Rules:
+- Answer directly and concisely. Do not repeat or rephrase the student's question.
+- Do not say things like "The lesson covers..." or "As mentioned in the lesson..." — just answer.
+- If the question goes beyond the lesson, answer it naturally without pointing out that it's not in the lesson.
+- Use the lesson content as context for your answers but do not reference it explicitly.
 
 LESSON CONTENT:
 ${lessonContent}`;
 
-    const stream = anthropic.messages.stream({
+    const response = await anthropic.messages.create({
       model: CHAT_MODEL,
       max_tokens: 1024,
+      stream: true,
       system: systemPrompt,
       messages: historyMessages.map((m) => ({
         role: m.role as "user" | "assistant",
@@ -108,36 +112,43 @@ ${lessonContent}`;
       })),
     });
 
+    const encoder = new TextEncoder();
+    let fullResponse = "";
+    const conversationId = conversation.id;
+
     const readableStream = new ReadableStream({
       async start(controller) {
-        let fullResponse = "";
-        stream.on("text", (text) => {
-          fullResponse += text;
-          controller.enqueue(new TextEncoder().encode(text));
-        });
-        stream.on("end", async () => {
+        try {
+          for await (const event of response) {
+            if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+              const text = event.delta.text;
+              fullResponse += text;
+              controller.enqueue(encoder.encode(text));
+            }
+          }
+          // Save assistant message after stream completes
           await prisma.chatMessage.create({
             data: {
-              conversationId: conversation.id,
+              conversationId,
               role: "assistant",
               content: fullResponse,
             },
           });
           controller.close();
-        });
-        stream.on("error", (error) => {
+        } catch (error) {
+          console.error("Streaming error:", error);
           controller.error(error);
-        });
+        }
       },
     });
 
     return new Response(readableStream, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
-        "Transfer-Encoding": "chunked",
       },
     });
-  } catch {
+  } catch (error) {
+    console.error("Chat API error:", error);
     return NextResponse.json(
       { error: "Failed to process chat message", code: "INTERNAL_ERROR" },
       { status: 500 }
