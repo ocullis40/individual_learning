@@ -15,3 +15,29 @@ model User {
 
   @@map("users")
 }
+
+model Topic {
+  id            String   @id @default(cuid())
+  name          String
+  description   String
+  parentTopicId String?  @map("parent_topic_id")
+  parentTopic   Topic?   @relation("TopicHierarchy", fields: [parentTopicId], references: [id])
+  childTopics   Topic[]  @relation("TopicHierarchy")
+  lessons       Lesson[]
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("topics")
+}
+
+model Lesson {
+  id              String   @id @default(cuid())
+  title           String
+  content         String
+  difficultyLevel Int      @map("difficulty_level")
+  order           Int
+  topicId         String   @map("topic_id")
+  topic           Topic    @relation(fields: [topicId], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("lessons")
+}
