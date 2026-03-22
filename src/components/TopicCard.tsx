@@ -11,10 +11,10 @@ interface TopicCardProps {
 export function TopicCard({ id, name, description, lessonCount, childTopicCount }: TopicCardProps) {
   return (
     <Link href={`/topics/${id}`} className="block">
-      <div className="rounded-lg border border-gray-200 p-6 hover:border-blue-500 hover:shadow-md transition-all">
-        <h2 className="text-xl font-semibold">{name}</h2>
-        <p className="mt-2 text-gray-600">{description}</p>
-        <div className="mt-4 flex gap-4 text-sm text-gray-500">
+      <div className="py-3 hover:text-blue-600 transition-colors">
+        <h2 className="text-lg font-medium">{name}</h2>
+        {description && <p className="mt-1 text-sm text-gray-600">{description}</p>}
+        <div className="mt-1 flex gap-4 text-sm text-gray-400">
           {childTopicCount > 0 && <span>{childTopicCount} subtopics</span>}
           <span>{lessonCount} lessons</span>
         </div>

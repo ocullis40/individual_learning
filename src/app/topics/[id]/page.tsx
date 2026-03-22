@@ -74,7 +74,7 @@ export default async function TopicDetailPage({
           {topic.childTopics.length > 0 && (
             <section className="mt-8">
               <h2 className="text-xl font-semibold">Subtopics</h2>
-              <div className="mt-4 grid gap-4">
+              <div className="mt-2 ml-6 grid gap-1">
                 {topic.childTopics.map((child) => (
                   <TopicCard
                     key={child.id}
@@ -93,7 +93,7 @@ export default async function TopicDetailPage({
           {topic.lessons.length > 0 && (
             <section className="mt-8">
               <h2 className="text-xl font-semibold">Lessons</h2>
-              <div className="mt-4 space-y-3">
+              <div className="mt-2 ml-6 space-y-1">
                 {topic.lessons.map((lesson) => (
                   <LessonCard
                     key={lesson.id}
