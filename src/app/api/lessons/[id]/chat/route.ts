@@ -90,7 +90,10 @@ export async function POST(
         "\n\n[Note: Lesson content was truncated due to length.]";
     }
 
-    const systemPrompt = `You are a knowledgeable tutor helping a student understand the following lesson content.
+    const systemBlocks = [
+      {
+        type: "text" as const,
+        text: `You are a knowledgeable tutor helping a student understand the following lesson content.
 
 Rules:
 - Answer directly and concisely. Do not repeat or rephrase the student's question.
@@ -98,14 +101,29 @@ Rules:
 - If the question goes beyond the lesson, answer it naturally without pointing out that it's not in the lesson.
 - Use the lesson content as context for your answers but do not reference it explicitly.
 
-LESSON CONTENT:
-${lessonContent}`;
+ASSESSMENT MODE:
+If the user says "quiz me", "test me", "check my knowledge", or similar:
+- Switch to assessment mode
+- Ask a comprehension question about the lesson content
+- When the user answers:
+  - If correct: acknowledge briefly, optionally ask another question
+  - If incorrect or incomplete: explain the correct concept clearly, then ask a follow-up to confirm understanding
+- After assessment, you may update the user on how well they demonstrated understanding
+- Return to normal tutoring mode when the user is done being quizzed`,
+        cache_control: { type: "ephemeral" as const },
+      },
+      {
+        type: "text" as const,
+        text: `LESSON CONTENT:\n${lessonContent}`,
+        cache_control: { type: "ephemeral" as const },
+      },
+    ];
 
     const response = await anthropic.messages.create({
       model: CHAT_MODEL,
       max_tokens: 1024,
       stream: true,
-      system: systemPrompt,
+      system: systemBlocks,
       messages: historyMessages.map((m) => ({
         role: m.role as "user" | "assistant",
         content: m.content,
