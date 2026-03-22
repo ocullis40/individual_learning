@@ -5,10 +5,12 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import mermaid from "mermaid";
 
+let mermaidCounter = 0;
+
 function MermaidDiagram({ code }: { code: string }) {
   const [svg, setSvg] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const idRef = useRef(`mermaid-${Math.random().toString(36).slice(2)}`);
+  const idRef = useRef(`mermaid-${++mermaidCounter}`);
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, theme: "neutral" });
