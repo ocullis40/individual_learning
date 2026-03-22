@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { TopicSidebar } from "@/components/TopicSidebar";
 import { TopicCard } from "@/components/TopicCard";
 import { LessonCard } from "@/components/LessonCard";
+import { QuizPanel } from "@/components/QuizPanel";
 
 export default async function TopicDetailPage({
   params,
@@ -104,6 +105,9 @@ export default async function TopicDetailPage({
               </div>
             </section>
           )}
+
+          {/* Quiz */}
+          <QuizPanel topicId={id} />
         </div>
       </div>
     </main>
