@@ -68,10 +68,7 @@ export default async function LessonPage({
           </nav>
 
           <h1 className="text-3xl font-bold">{lesson.title}</h1>
-          <div className="mt-2 flex gap-4 text-sm text-gray-500">
-            <span>Level {lesson.difficultyLevel}</span>
-            <span>Lesson {lesson.order}</span>
-          </div>
+          {/* TODO: Show difficulty level when multiple levels exist */}
 
           <div className="mt-8">
             <LessonContent content={lesson.content} />
