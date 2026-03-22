@@ -99,7 +99,6 @@ export default async function TopicDetailPage({
                     id={lesson.id}
                     title={lesson.title}
                     order={lesson.order}
-                    difficultyLevel={lesson.difficultyLevel}
                   />
                 ))}
               </div>
