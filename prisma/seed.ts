@@ -69,6 +69,15 @@ Here is the crucial insight. If you plot the **binding energy per nucleon** acro
 
 ## Two Paths, One Promise
 
+\`\`\`mermaid
+graph TD
+    A[Atomic Nucleus] --> B{Heavier than Iron?}
+    B -->|Yes| C[Fission: Split Apart]
+    B -->|No| D[Fusion: Combine Together]
+    C --> E[Lighter Fragments + Energy]
+    D --> F[Heavier Nucleus + Energy]
+\`\`\`
+
 Fission is the splitting of a heavy nucleus, such as **uranium-235** or **plutonium-239**, into lighter fragments. A single fission event releases approximately **200 MeV** of energy — enough to visibly move a grain of sand — along with two or three free neutrons that can go on to split other nuclei, sustaining a chain reaction. Every commercial nuclear power plant on Earth today runs on fission.
 
 Fusion takes the opposite path: it forces light nuclei, typically the hydrogen isotopes **deuterium** and **tritium**, to merge into helium, releasing **17.6 MeV** per reaction. Though each individual fusion event produces less energy than a fission event, the fuel is lighter, and pound for pound the energy yield is comparable. More importantly, fusion fuel is virtually inexhaustible — deuterium can be extracted from ordinary seawater. The catch is that fusion demands temperatures exceeding **100 million degrees Celsius** to overcome the electrostatic repulsion between nuclei, and no one has yet built a reactor that produces more fusion energy than it consumes. Fusion remains the great unfinished project of physics.
@@ -128,6 +137,18 @@ The repulsion wins.
 
 The nucleus tears in two, producing a pair of **fission fragments** — typically unequal, something like barium-141 and krypton-92, or strontium-94 and xenon-140. These fragments fly apart at roughly 3% the speed of light, carrying about **167 MeV** of kinetic energy that instantly converts to heat as they slam into the surrounding fuel. Simultaneously, the split releases a burst of gamma radiation (about **6 MeV**), and — crucially — **two or three free neutrons**, each carrying roughly 2 MeV of kinetic energy.
 
+\`\`\`mermaid
+graph TD
+    A[Neutron] --> B[Uranium-235]
+    B --> C[Fission Products]
+    B --> D[Energy: ~200 MeV]
+    B --> E[2-3 Free Neutrons]
+    E --> F[U-235 Atom]
+    E --> G[U-235 Atom]
+    F --> H[More Neutrons...]
+    G --> I[More Neutrons...]
+\`\`\`
+
 Here is where the magic happens. Those newly liberated neutrons streak outward through the fuel, and if even one of them finds another uranium-235 nucleus and triggers another fission, the process repeats. The result is a **chain reaction**: one split becomes two, two become four, four become eight. In theory, the progression is exponential and explosive — this, after all, is the principle behind a nuclear weapon. But in a reactor, the chain reaction is held in exquisite balance. When exactly one neutron per fission event goes on to cause another fission on average, the reactor is said to be **critical**. Despite its alarming sound, this is simply the steady-state operating condition — not an emergency, but the quiet hum of controlled atomic fire.
 
 If fewer than one neutron propagates, the reaction is **subcritical** and gradually fades. If more than one propagates, the reactor is **supercritical** — a condition used briefly during startup to bring power levels up, but dangerous if left unchecked. The entire art of reactor operation lies in walking this razor's edge.
@@ -183,6 +204,18 @@ The **pressurized water reactor** dominates the global fleet for a compelling sa
 
 ## From Mine to Monument: The Fuel Cycle
 
+\`\`\`mermaid
+graph LR
+    A[Mining] --> B[Milling to Yellowcake]
+    B --> C[Enrichment]
+    C --> D[Fuel Fabrication]
+    D --> E[Reactor]
+    E --> F[Spent Fuel Cooling]
+    F --> G{Reprocess?}
+    G -->|Yes| H[MOX Fuel] --> E
+    G -->|No| I[Geological Storage]
+\`\`\`
+
 The journey of nuclear fuel is an epic in itself. It begins in uranium mines — open-pit, underground, or increasingly through in-situ leaching, where acidic or alkaline solutions dissolve the uranium directly from underground deposits. The extracted ore is processed into **yellowcake** (U₃O₈), a concentrated powder that is then converted to uranium hexafluoride gas and enriched in centrifuge cascades. The enriched uranium is converted back to solid uranium dioxide powder, pressed into those tiny ceramic pellets, fired in kilns at roughly 1,700 degrees Celsius, and loaded into zirconium fuel rods.
 
 Inside the reactor, fuel assemblies spend **3-5 years** in the core, periodically reshuffled to optimize their energy output. When spent, they are transferred to **cooling pools** — deep basins of water adjacent to the reactor — where they rest for 5-10 years as short-lived isotopes decay and their fierce radioactive heat gradually subsides. After cooling, the spent fuel may be moved to **dry cask storage**, sealed steel-and-concrete containers that rely on nothing but passive air circulation.
@@ -218,6 +251,15 @@ The process happens in stages, through what physicists call the **proton-proton 
 
 The Sun can afford to be patient about this. Its enormous gravitational pressure ensures that each proton gets countless opportunities to collide with its neighbors over billions of years. A given proton in the solar core will, on average, bounce around for about a billion years before it finally fuses. We do not have that luxury. On Earth, without a star's worth of gravity to hold the fuel together, we must compensate with sheer, extraordinary heat.
 
+\`\`\`mermaid
+graph LR
+    A[Deuterium] --> C((Fusion))
+    B[Tritium] --> C
+    C --> D[Helium-4]
+    C --> E[Neutron]
+    C --> F[Energy: 17.6 MeV]
+\`\`\`
+
 The reaction best suited to terrestrial fusion is the **deuterium-tritium (D-T) reaction**: a deuterium nucleus and a tritium nucleus merge to form helium-4 and a high-energy neutron, releasing **17.6 MeV** per event. But this reaction demands temperatures of **100-200 million degrees Celsius** — roughly six to thirteen times hotter than the center of the Sun. At these temperatures, matter enters a state called **plasma**: a roiling, electrically charged gas in which electrons have been completely stripped from their atoms, and the nuclei careen about at tremendous speeds. Plasma is not merely hot gas. It is the fourth state of matter, responsive to electric and magnetic fields, prone to strange waves and instabilities, and maddeningly difficult to contain.
 
 The central challenge of fusion can be distilled to a single criterion, first articulated by the British physicist John Lawson in 1955. The **Lawson criterion** states that the product of three quantities — plasma density (**n**), temperature (**T**), and the time the energy stays confined (**tau**) — must exceed a certain threshold: roughly **n x T x tau > 3 x 10²¹ keV-s/m³** for D-T fusion. In plain language: the plasma must be hot enough, dense enough, and held together long enough for the fusion reactions to pay back the energy invested in heating and confining it. Meeting all three conditions simultaneously has proven to be one of the hardest problems in physics.
@@ -240,6 +282,15 @@ To understand why fusion is so compelling, it helps to see it side by side with 
 | **Waste volume (per GW-year)** | ~27 tonnes of spent fuel | ~5 tonnes of activated materials (estimated) |
 
 ## Bottling a Star: Magnetic Confinement
+
+\`\`\`mermaid
+graph LR
+    A[Plasma: 150M degrees C] --> B[Magnetic Confinement]
+    B --> C[Heat Extraction]
+    C --> D[Steam Generation]
+    D --> E[Turbine]
+    E --> F[Electricity]
+\`\`\`
 
 If you cannot use gravity to hold a plasma together — and on Earth, you cannot — then the next best option is magnetism. Charged particles naturally spiral along magnetic field lines, and by shaping those field lines into a closed loop, you can keep a superheated plasma suspended in midair, never touching any physical wall. This is the principle behind **magnetic confinement fusion**, and its most successful embodiment is the **tokamak** — a Russian acronym for "toroidal chamber with magnetic coils."
 
