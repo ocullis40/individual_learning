@@ -71,7 +71,7 @@ export default async function LessonPage({
           {/* TODO: Show difficulty level when multiple levels exist */}
 
           <div className="mt-8">
-            <LessonContent content={lesson.content} />
+            <LessonContent content={lesson.content.replace(/^#\s+.+\n+/, "")} />
           </div>
         </div>
       </div>
