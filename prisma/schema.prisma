@@ -24,6 +24,8 @@ model Topic {
   parentTopic   Topic?   @relation("TopicHierarchy", fields: [parentTopicId], references: [id])
   childTopics   Topic[]  @relation("TopicHierarchy")
   lessons       Lesson[]
+  topicMastery  TopicMastery[]
+  quizAttempts  QuizAttempt[]
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("topics")
@@ -41,6 +43,42 @@ model Lesson {
   createdAt       DateTime           @default(now()) @map("created_at")
 
   @@map("lessons")
+}
+
+enum MasteryLevel {
+  not_started
+  learning
+  familiar
+  proficient
+}
+
+model TopicMastery {
+  id             String       @id @default(cuid())
+  userId         String       @map("user_id")
+  topicId        String       @map("topic_id")
+  topic          Topic        @relation(fields: [topicId], references: [id])
+  masteryLevel   MasteryLevel @default(not_started) @map("mastery_level")
+  lastAssessedAt DateTime?    @map("last_assessed_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@unique([userId, topicId])
+  @@map("topic_mastery")
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  topicId   String   @map("topic_id")
+  topic     Topic    @relation(fields: [topicId], references: [id])
+  questions Json
+  answers   Json
+  score     Int
+  feedback  Json
+  status    String   @default("in_progress")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("quiz_attempts")
 }
 
 model ChatConversation {
