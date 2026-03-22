@@ -17,9 +17,11 @@ src/
 ├── app/
 │   ├── api/
 │   │   ├── lessons/[id]/chat/route.ts    # Updated: prompt caching + assessment mode
-│   │   └── topics/[id]/quiz/
-│   │       ├── generate/route.ts          # POST: generate 10 questions
-│   │       └── grade/route.ts             # POST: grade answers, update mastery
+│   │   ├── topics/[id]/quiz/
+│   │   │   ├── generate/route.ts          # POST: generate 10 questions
+│   │   │   └── grade/route.ts             # POST: grade answers, update mastery
+│   │   └── profile/mastery/
+│   │       └── route.ts                   # GET: all TopicMastery for current user
 │   └── topics/[id]/
 │       └── page.tsx                       # Updated: add Take Quiz button
 ├── components/
@@ -76,6 +78,8 @@ If the user says "quiz me", "test me", "check my knowledge", or similar:
   - If incorrect or incomplete: explain the correct concept clearly, then ask a follow-up to confirm understanding
 - After assessment, you may update the user on how well they demonstrated understanding
 - Return to normal tutoring mode when the user is done being quizzed
+
+NOTE: Conversational assessment does NOT update TopicMastery in this phase. Claude cannot write to the database during a streaming chat response. TopicMastery is only updated via the formal short-answer quiz (Task 3). Adding tool-use to the chat for mastery updates is deferred to a future phase.
 ```
 
 - [ ] **Step 3: Verify build and tests**
@@ -117,14 +121,22 @@ Create `tests/models/assessment-schema.test.ts` testing:
 - [ ] **Step 3: Add models to schema**
 
 ```prisma
+enum MasteryLevel {
+  not_started
+  learning
+  familiar
+  proficient
+}
+
 model TopicMastery {
-  id             String   @id @default(cuid())
-  userId         String   @map("user_id")
-  topicId        String   @map("topic_id")
-  topic          Topic    @relation(fields: [topicId], references: [id])
-  masteryLevel   String   @default("not_started") @map("mastery_level")
-  lastAssessedAt DateTime? @map("last_assessed_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id             String       @id @default(cuid())
+  userId         String       @map("user_id")
+  topicId        String       @map("topic_id")
+  topic          Topic        @relation(fields: [topicId], references: [id])
+  masteryLevel   MasteryLevel @default(not_started) @map("mastery_level")
+  lastAssessedAt DateTime?    @map("last_assessed_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
 
   @@unique([userId, topicId])
   @@map("topic_mastery")
@@ -139,6 +151,7 @@ model QuizAttempt {
   answers   Json
   score     Int
   feedback  Json
+  status    String   @default("in_progress")
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("quiz_attempts")
@@ -146,6 +159,8 @@ model QuizAttempt {
 ```
 
 Add relations to Topic model: `topicMastery TopicMastery[]` and `quizAttempts QuizAttempt[]`
+
+Note: QuizAttempt has a `status` field ("in_progress" or "completed") — used to store reference answers server-side during quiz taking. The `/generate` endpoint creates a QuizAttempt with status "in_progress" containing the questions and reference answers. The client only receives the questions. The `/grade` endpoint looks up the attempt by ID, grades against the stored reference answers, and updates status to "completed".
 
 - [ ] **Step 4: Run migration**
 
@@ -187,36 +202,48 @@ Test TopicMastery upsert and QuizAttempt creation.
 
 - [ ] **Step 3: Create POST /api/topics/[id]/quiz/generate**
 
+- Await params (Next.js 16 async pattern)
 - Find topic and all its lessons (including child topic lessons)
 - Concatenate all lesson content (respect MAX_LESSON_CHARS per lesson)
-- Call Claude Sonnet to generate 10 short-answer questions
-- Return JSON array of questions (no answers sent to client)
-- Store reference answers server-side in a temporary way (or return them encrypted/hashed)
-
-Note: Reference answers must not be sent to the client. Options:
-- Return a `quizSessionId` that maps to the answers on the server
-- Or just send answers back to the grade endpoint with the questions
+- Apply prompt caching (`cache_control: { type: "ephemeral" }`) on the lesson content block
+- Call Claude Sonnet to generate 10 short-answer questions as JSON
+- Create a QuizAttempt with status "in_progress", storing questions AND reference answers in the `questions` JSON field
+- Return only the attempt ID and questions (WITHOUT reference answers) to the client
+- Use error envelope `{ error, code }` with appropriate HTTP status codes
 
 - [ ] **Step 4: Create POST /api/topics/[id]/quiz/grade**
 
-- Receive: questions array, user answers array, reference answers
-- Call Claude Haiku to grade each answer
-- Calculate score
-- Upsert TopicMastery based on score thresholds (80%+ proficient, 50-79% familiar, 20-49% learning, <20% not_started)
-- Save QuizAttempt to DB
-- Return: score, per-question feedback, suggested review sections
+- Receive: `{ attemptId, answers }` from the client
+- Look up the QuizAttempt by ID (404 if not found, 400 if already completed)
+- Extract reference answers from the stored `questions` field
+- Call Claude Haiku to grade each answer against the reference answer
+- Calculate score (number correct out of 10)
+- Upsert TopicMastery based on score thresholds:
+  - 80-100%: proficient
+  - 50-79%: familiar
+  - 20-49%: learning
+  - 0-19%: not_started
+- Update QuizAttempt: set status to "completed", store user answers, score, and feedback
+- Return: score, per-question feedback (correct/incorrect, what was missed, suggested lesson section to review)
+- Use error envelope `{ error, code }`
 
-- [ ] **Step 5: Run tests and build**
+- [ ] **Step 5: Create GET /api/profile/mastery**
+
+- Return all TopicMastery records for "dev-user"
+- Include topic name via relation
+- Use error envelope
+
+- [ ] **Step 6: Run tests and build**
 
 ```bash
 npm test && npm run build
 ```
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/lib/anthropic.ts src/app/api/topics/[id]/quiz/ tests/api/quiz.test.ts
-git commit -m "feat: add quiz generation and grading API routes
+git add src/lib/anthropic.ts src/app/api/topics/[id]/quiz/ src/app/api/profile/mastery/ tests/api/quiz.test.ts
+git commit -m "feat: add quiz generation, grading, and mastery API routes
 
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
 ```
@@ -241,7 +268,7 @@ States: `idle` → `loading` → `taking` → `submitting` → `results`
 
 - [ ] **Step 2: Add Take Quiz button to topic detail page**
 
-Add QuizPanel to `src/app/topics/[id]/page.tsx` — show it below the lessons section.
+Add QuizPanel to `src/app/topics/[id]/page.tsx` — show it below the lessons section. The topic page is a server component; QuizPanel is a client component that receives `topicId` as a prop (client island pattern, same as ChatPanel on the lesson page).
 
 - [ ] **Step 3: Verify build**
 

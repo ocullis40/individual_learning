@@ -153,3 +153,4 @@ Questions and answers:
 - Timed quizzes
 - Quiz history / retake comparisons
 - Adaptive question difficulty
+- TopicMastery updates from conversational assessment (deferred — requires tool-use in chat, which adds complexity to the streaming architecture)
