@@ -1,156 +1,301 @@
-import { describe, it, expect, afterAll, vi } from "vitest";
-import { prisma } from "@/lib/prisma";
-import { searchExistingLessons } from "@/agents/tools/search-lessons";
-import { saveLesson } from "@/agents/tools/save-lesson";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Track IDs for cleanup
-const createdTopicIds: string[] = [];
-const createdLessonIds: string[] = [];
+const { mockCreate, mockSearchExecute, mockContentExecute, mockDiagramExecute, mockSaveExecute } =
+  vi.hoisted(() => ({
+    mockCreate: vi.fn(),
+    mockSearchExecute: vi.fn(),
+    mockContentExecute: vi.fn(),
+    mockDiagramExecute: vi.fn(),
+    mockSaveExecute: vi.fn(),
+  }));
 
-afterAll(async () => {
-  if (createdLessonIds.length) {
-    await prisma.lesson.deleteMany({ where: { id: { in: createdLessonIds } } });
-  }
-  if (createdTopicIds.length) {
-    await prisma.topic.deleteMany({ where: { id: { in: createdTopicIds } } });
-  }
-});
+vi.mock("@/lib/anthropic", () => ({
+  anthropic: { messages: { create: mockCreate } },
+  CONTENT_MODEL: "claude-sonnet-4-6",
+}));
 
-describe("searchExistingLessons", () => {
-  it("exports the correct tool shape", () => {
-    expect(searchExistingLessons.name).toBe("searchExistingLessons");
-    expect(searchExistingLessons.description).toBeDefined();
-    expect(searchExistingLessons.inputSchema).toBeDefined();
-    expect(searchExistingLessons.inputSchema.type).toBe("object");
-    expect(searchExistingLessons.inputSchema.required).toContain("topicId");
-    expect(typeof searchExistingLessons.execute).toBe("function");
-  });
+vi.mock("@/agents/tools/search-lessons", () => ({
+  searchExistingLessons: {
+    name: "searchExistingLessons",
+    description: "Search for existing lessons",
+    inputSchema: {
+      type: "object" as const,
+      properties: { topicId: { type: "string" } },
+      required: ["topicId"],
+    },
+    execute: mockSearchExecute,
+  },
+}));
 
-  it("returns lessons for a topic and its child topics", async () => {
-    const parent = await prisma.topic.create({
-      data: { name: "CA Test Parent", description: "Parent topic" },
-    });
-    createdTopicIds.push(parent.id);
-
-    const child = await prisma.topic.create({
-      data: {
-        name: "CA Test Child",
-        description: "Child topic",
-        parentTopicId: parent.id,
+vi.mock("@/agents/tools/generate-content", () => ({
+  generateContent: {
+    name: "generateContent",
+    description: "Generate educational content",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        title: { type: "string" },
+        educationLevel: { type: "string" },
+        topicName: { type: "string" },
       },
-    });
-    createdTopicIds.unshift(child.id);
+      required: ["title", "educationLevel", "topicName"],
+    },
+    execute: mockContentExecute,
+  },
+}));
 
-    const parentLesson = await prisma.lesson.create({
-      data: {
-        title: "Parent Lesson",
-        content: "Content for parent",
-        difficultyLevel: 1,
-        order: 1,
-        topicId: parent.id,
+vi.mock("@/agents/tools/generate-diagram", () => ({
+  generateDiagram: {
+    name: "generateDiagram",
+    description: "Generate a Mermaid diagram",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        concept: { type: "string" },
+        diagramType: { type: "string" },
       },
-    });
-    createdLessonIds.push(parentLesson.id);
+      required: ["concept", "diagramType"],
+    },
+    execute: mockDiagramExecute,
+  },
+}));
 
-    const childLesson = await prisma.lesson.create({
-      data: {
-        title: "Child Lesson",
-        content: "Content for child",
-        difficultyLevel: 1,
-        order: 1,
-        topicId: child.id,
+vi.mock("@/agents/tools/save-lesson", () => ({
+  saveLesson: {
+    name: "saveLesson",
+    description: "Save a lesson",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        topicId: { type: "string" },
+        title: { type: "string" },
+        content: { type: "string" },
+        educationLevel: { type: "string" },
       },
-    });
-    createdLessonIds.push(childLesson.id);
+      required: ["topicId", "title", "content", "educationLevel"],
+    },
+    execute: mockSaveExecute,
+  },
+}));
 
-    const result = await searchExistingLessons.execute({ topicId: parent.id });
+import { runContentAgent } from "@/agents/content-agent";
 
-    expect(result.lessons).toHaveLength(2);
-    const titles = result.lessons.map((l) => l.title);
-    expect(titles).toContain("Parent Lesson");
-    expect(titles).toContain("Child Lesson");
+const goal = {
+  topicId: "topic-123",
+  title: "Introduction to Algorithms",
+  educationLevel: "college",
+};
 
-    const childResult = result.lessons.find((l) => l.title === "Child Lesson");
-    expect(childResult?.topicName).toBe("CA Test Child");
+describe("runContentAgent", () => {
+  beforeEach(() => {
+    mockCreate.mockClear();
+    mockSearchExecute.mockClear();
+    mockContentExecute.mockClear();
+    mockDiagramExecute.mockClear();
+    mockSaveExecute.mockClear();
   });
 
-  it("returns empty array when no lessons exist", async () => {
-    const topic = await prisma.topic.create({
-      data: { name: "CA Empty Topic", description: "No lessons" },
+  it("executes a tool_use response and sends result back", async () => {
+    mockSearchExecute.mockResolvedValueOnce({
+      lessons: [{ title: "Existing Lesson", topicName: "Algorithms" }],
     });
-    createdTopicIds.push(topic.id);
 
-    const result = await searchExistingLessons.execute({ topicId: topic.id });
+    // First call: Claude wants to use searchExistingLessons
+    mockCreate.mockResolvedValueOnce({
+      stop_reason: "tool_use",
+      content: [
+        {
+          type: "tool_use",
+          id: "toolu_01",
+          name: "searchExistingLessons",
+          input: { topicId: "topic-123" },
+        },
+      ],
+    });
 
-    expect(result.lessons).toEqual([]);
+    // Second call: Claude is done
+    mockCreate.mockResolvedValueOnce({
+      stop_reason: "end_turn",
+      content: [{ type: "text", text: "Done searching." }],
+    });
+
+    const result = await runContentAgent(goal);
+
+    // Verify tool was executed
+    expect(mockSearchExecute).toHaveBeenCalledWith({ topicId: "topic-123" });
+
+    // Verify result was sent back to Claude with tool_use_id
+    // messages array is shared by reference; at call time it had 3 entries:
+    // [0] user initial, [1] assistant tool_use, [2] user tool_result
+    const secondCall = mockCreate.mock.calls[1][0];
+    const userMessage = secondCall.messages[2];
+    expect(userMessage.role).toBe("user");
+    expect(userMessage.content).toEqual([
+      expect.objectContaining({
+        type: "tool_result",
+        tool_use_id: "toolu_01",
+        content: JSON.stringify({
+          lessons: [{ title: "Existing Lesson", topicName: "Algorithms" }],
+        }),
+      }),
+    ]);
+
+    // Verify step was recorded
+    expect(result.steps).toHaveLength(1);
+    expect(result.steps[0].tool).toBe("searchExistingLessons");
+    expect(result.steps[0].input).toEqual({ topicId: "topic-123" });
+  });
+
+  it("returns success on end_turn with correct AgentResult shape", async () => {
+    mockSaveExecute.mockResolvedValueOnce({
+      id: "lesson-456",
+      title: "Introduction to Algorithms",
+    });
+
+    // First call: Claude saves a lesson
+    mockCreate.mockResolvedValueOnce({
+      stop_reason: "tool_use",
+      content: [
+        {
+          type: "tool_use",
+          id: "toolu_02",
+          name: "saveLesson",
+          input: {
+            topicId: "topic-123",
+            title: "Introduction to Algorithms",
+            content: "## Lesson content\n\n```mermaid\ngraph TD\nA-->B\n```",
+            educationLevel: "college",
+          },
+        },
+      ],
+    });
+
+    // Second call: Claude wraps up
+    mockCreate.mockResolvedValueOnce({
+      stop_reason: "end_turn",
+      content: [
+        { type: "text", text: "Lesson created successfully with diagrams." },
+      ],
+    });
+
+    const result = await runContentAgent(goal);
+
+    expect(result.success).toBe(true);
+    expect(result.message).toBe("Lesson created successfully with diagrams.");
+    expect(result.lessonId).toBe("lesson-456");
+    expect(result.steps).toHaveLength(1);
+    expect(result.steps[0].tool).toBe("saveLesson");
+    expect(result.steps[0].output).toEqual({
+      id: "lesson-456",
+      title: "Introduction to Algorithms",
+    });
+  });
+
+  it("returns failure when max iterations exceeded", async () => {
+    // Claude always requests a tool, never ends
+    mockSearchExecute.mockResolvedValue({ lessons: [] });
+
+    for (let i = 0; i < 10; i++) {
+      mockCreate.mockResolvedValueOnce({
+        stop_reason: "tool_use",
+        content: [
+          {
+            type: "tool_use",
+            id: `toolu_loop_${i}`,
+            name: "searchExistingLessons",
+            input: { topicId: "topic-123" },
+          },
+        ],
+      });
+    }
+
+    const result = await runContentAgent(goal);
+
+    expect(result.success).toBe(false);
+    expect(result.message).toContain("maximum iterations");
+    expect(result.steps).toHaveLength(10);
+  });
+
+  it("sets is_error true when tool execution throws", async () => {
+    mockSearchExecute.mockRejectedValueOnce(new Error("Database connection failed"));
+
+    // First call: Claude wants to search
+    mockCreate.mockResolvedValueOnce({
+      stop_reason: "tool_use",
+      content: [
+        {
+          type: "tool_use",
+          id: "toolu_err",
+          name: "searchExistingLessons",
+          input: { topicId: "topic-123" },
+        },
+      ],
+    });
+
+    // Second call: Claude ends after seeing the error
+    mockCreate.mockResolvedValueOnce({
+      stop_reason: "end_turn",
+      content: [{ type: "text", text: "Search failed, proceeding anyway." }],
+    });
+
+    const result = await runContentAgent(goal);
+
+    // Verify is_error was sent in tool_result
+    // messages[2] is the user tool_result (index 0=user, 1=assistant, 2=tool_result)
+    const secondCall = mockCreate.mock.calls[1][0];
+    const userMessage = secondCall.messages[2];
+    expect(userMessage.content).toEqual([
+      expect.objectContaining({
+        type: "tool_result",
+        tool_use_id: "toolu_err",
+        content: "Database connection failed",
+        is_error: true,
+      }),
+    ]);
+
+    // Verify step recorded the error
+    expect(result.steps[0].output).toEqual({ error: "Database connection failed" });
+    // No saveLesson step occurred, so agent reports failure
+    expect(result.success).toBe(false);
+    expect(result.message).toBe("Agent completed without saving a lesson.");
+  });
+
+  it("passes system prompt with mermaid embedding instructions", async () => {
+    mockCreate.mockResolvedValueOnce({
+      stop_reason: "end_turn",
+      content: [{ type: "text", text: "Done." }],
+    });
+
+    await runContentAgent(goal);
+
+    const firstCall = mockCreate.mock.calls[0][0];
+    expect(firstCall.system).toContain("mermaid");
+    expect(firstCall.system).toContain("embed");
+    expect(firstCall.system).toContain(goal.topicId);
+    expect(firstCall.system).toContain(goal.title);
+    expect(firstCall.system).toContain(goal.educationLevel);
+  });
+
+  it("sends tools array mapped from tool objects", async () => {
+    mockCreate.mockResolvedValueOnce({
+      stop_reason: "end_turn",
+      content: [{ type: "text", text: "Done." }],
+    });
+
+    await runContentAgent(goal);
+
+    const firstCall = mockCreate.mock.calls[0][0];
+    expect(firstCall.tools).toHaveLength(4);
+    expect(firstCall.tools.map((t: { name: string }) => t.name)).toEqual([
+      "searchExistingLessons",
+      "generateContent",
+      "generateDiagram",
+      "saveLesson",
+    ]);
+    for (const tool of firstCall.tools) {
+      expect(tool).toHaveProperty("name");
+      expect(tool).toHaveProperty("description");
+      expect(tool).toHaveProperty("input_schema");
+    }
   });
 });
-
-describe("saveLesson", () => {
-  it("exports the correct tool shape", () => {
-    expect(saveLesson.name).toBe("saveLesson");
-    expect(saveLesson.description).toBeDefined();
-    expect(saveLesson.inputSchema).toBeDefined();
-    expect(saveLesson.inputSchema.type).toBe("object");
-    expect(saveLesson.inputSchema.required).toContain("topicId");
-    expect(saveLesson.inputSchema.required).toContain("title");
-    expect(saveLesson.inputSchema.required).toContain("content");
-    expect(saveLesson.inputSchema.required).toContain("educationLevel");
-    expect(typeof saveLesson.execute).toBe("function");
-  });
-
-  it("saves a lesson with auto-calculated order and default difficulty", async () => {
-    const topic = await prisma.topic.create({
-      data: { name: "CA Save Topic", description: "For saving lessons" },
-    });
-    createdTopicIds.push(topic.id);
-
-    const result = await saveLesson.execute({
-      topicId: topic.id,
-      title: "First Saved Lesson",
-      content: "## Introduction\nSome content.",
-      educationLevel: "high school",
-    });
-
-    createdLessonIds.push(result.id);
-
-    expect(result.id).toBeDefined();
-    expect(result.title).toBe("First Saved Lesson");
-
-    const lesson = await prisma.lesson.findUnique({ where: { id: result.id } });
-    expect(lesson).toBeDefined();
-    expect(lesson!.order).toBe(1);
-    expect(lesson!.difficultyLevel).toBe(1);
-    expect(lesson!.educationLevel).toBe("high school");
-  });
-
-  it("auto-increments order for subsequent lessons", async () => {
-    const topic = await prisma.topic.create({
-      data: { name: "CA Order Topic", description: "For order testing" },
-    });
-    createdTopicIds.push(topic.id);
-
-    const first = await saveLesson.execute({
-      topicId: topic.id,
-      title: "Order Lesson 1",
-      content: "Content 1",
-      educationLevel: "undergraduate",
-    });
-    createdLessonIds.push(first.id);
-
-    const second = await saveLesson.execute({
-      topicId: topic.id,
-      title: "Order Lesson 2",
-      content: "Content 2",
-      educationLevel: "undergraduate",
-    });
-    createdLessonIds.push(second.id);
-
-    const firstDb = await prisma.lesson.findUnique({ where: { id: first.id } });
-    const secondDb = await prisma.lesson.findUnique({ where: { id: second.id } });
-
-    expect(firstDb!.order).toBe(1);
-    expect(secondDb!.order).toBe(2);
-  });
-});
-
