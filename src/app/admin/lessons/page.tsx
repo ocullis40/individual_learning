@@ -28,6 +28,7 @@ export default function AdminLessonsPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [topicId, setTopicId] = useState("");
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
 
   // New topic fields
@@ -99,7 +100,7 @@ export default function AdminLessonsPage() {
       const res = await fetch("/api/admin/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topicId, title: title.trim(), educationLevel }),
+        body: JSON.stringify({ topicId, title: title.trim(), educationLevel, ...(description.trim() ? { description: description.trim() } : {}) }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -132,6 +133,7 @@ export default function AdminLessonsPage() {
   const handleReset = () => {
     setTopicId("");
     setTitle("");
+    setDescription("");
     setEducationLevel("");
     setCreatingTopic(false);
     setNewTopicName("");
@@ -267,6 +269,21 @@ export default function AdminLessonsPage() {
             />
           </div>
 
+          {/* Description (optional) */}
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              Description <span className="text-gray-400">(optional)</span>
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g. Focus on safety protocols that emerged after Chernobyl and Fukushima"
+              rows={2}
+              className="mt-1 block w-full resize-none rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
           {/* Education level */}
           <div>
             <label htmlFor="level" className="block text-sm font-medium text-gray-700">
@@ -312,9 +329,11 @@ export default function AdminLessonsPage() {
         <div className="mt-8 space-y-6">
           <div className="rounded-md border border-green-200 bg-green-50 p-4">
             <h2 className="text-lg font-semibold text-green-800">
-              Lesson Created
+              Lesson Created Successfully
             </h2>
-            <p className="mt-2 text-sm text-green-700">{result.message}</p>
+            <p className="mt-2 text-sm text-green-700">
+              &ldquo;{title}&rdquo; has been generated and saved.
+            </p>
           </div>
 
           {result.steps.length > 0 && (

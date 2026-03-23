@@ -6,7 +6,7 @@ export const maxDuration = 120;
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { topicId, title, educationLevel } = body;
+    const { topicId, title, educationLevel, description } = body;
 
     if (!topicId || typeof topicId !== "string") {
       return NextResponse.json(
@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       topicId,
       title: title.trim(),
       educationLevel,
+      ...(description && typeof description === "string" ? { description: description.trim() } : {}),
     });
 
     return NextResponse.json(result);
