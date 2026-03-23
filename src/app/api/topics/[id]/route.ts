@@ -28,7 +28,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(topic);
+    return NextResponse.json({ data: topic });
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch topic", code: "INTERNAL_ERROR" },

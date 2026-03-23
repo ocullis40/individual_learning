@@ -28,7 +28,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(lesson);
+    return NextResponse.json({ data: lesson });
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch lesson", code: "INTERNAL_ERROR" },
