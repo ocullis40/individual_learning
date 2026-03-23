@@ -275,8 +275,8 @@ Follow this process:
 1. First, search for existing lessons to understand what's already covered
 2. Generate the lesson content in narrative style
 3. Generate 1-2 Mermaid diagrams where they help explain concepts
-4. Insert the diagrams into the content at appropriate locations
-5. Save the final lesson to the database
+4. Compose the final lesson by embedding the mermaid diagrams into the content at appropriate locations using \`\`\`mermaid code fences
+5. Save the final composed lesson to the database — the content field must include the full markdown with any mermaid diagrams already embedded
 
 You have tools available. Use them to accomplish your goal. When you are done, respond with a summary of what you created.`;
 
@@ -314,6 +314,7 @@ You have tools available. Use them to accomplish your goal. When you are done, r
           toolResults.push({
             type: "tool_result",
             tool_use_id: toolUse.id,
+            is_error: true,
             content: JSON.stringify({ error: `Unknown tool: ${toolUse.name}` })
           });
           continue;
@@ -331,6 +332,7 @@ You have tools available. Use them to accomplish your goal. When you are done, r
           toolResults.push({
             type: "tool_result",
             tool_use_id: toolUse.id,
+            is_error: true,
             content: JSON.stringify({ error: error.message })
           });
         }
@@ -353,16 +355,23 @@ You have tools available. Use them to accomplish your goal. When you are done, r
 }
 ```
 
-- [ ] **Step 2: Verify build**
+- [ ] **Step 2: Write a basic test for the agent loop**
+
+Add to `tests/agents/content-agent.test.ts`:
+- Test that the agent loop handles tool_use responses correctly (mock `anthropic.messages.create` to return a scripted sequence: first a tool_use response, then an end_turn response)
+- Test that max iterations is respected (mock to always return tool_use)
+- These are unit tests with mocked Claude responses — no real API calls
+
+- [ ] **Step 3: Verify build and tests**
 
 ```bash
-npm run build
+npm run build && npm test
 ```
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add src/agents/content-agent.ts
+git add src/agents/content-agent.ts tests/agents/content-agent.test.ts
 git commit -m "feat: build Content Agent orchestration loop with tool calling
 
 Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
