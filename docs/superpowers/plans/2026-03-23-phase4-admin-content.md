@@ -107,24 +107,48 @@ Tests for:
 GET: Return all topics with parent topic info, ordered by name.
 POST: Create a new topic with name, description, optional parentTopicId.
 
+- [ ] **Step 2.5: Add CONTENT_MODEL constant to src/lib/anthropic.ts**
+
+```typescript
+export const CONTENT_MODEL = "claude-sonnet-4-6";
+```
+
+Follow the established pattern alongside CHAT_MODEL and GRADING_MODEL.
+
 - [ ] **Step 3: Create POST /api/admin/lessons/generate**
 
 - Receive { topicId, title, educationLevel }
 - Find topic (404 if not found)
-- Check if lesson with same title exists under that topic
-- Call Claude Sonnet to generate lesson content using the generation prompt
-- Use prompt caching on the system prompt
+- Check if lesson with same title exists under that topic (findFirst by title + topicId)
+- Call Claude using CONTENT_MODEL with max_tokens: 8192
+- Use prompt caching: system prompt as array with cache_control on both blocks:
+  ```typescript
+  system: [
+    { type: "text", text: systemInstructions, cache_control: { type: "ephemeral" } },
+    { type: "text", text: `TOPIC: ${topic.name}\n${topic.description}`, cache_control: { type: "ephemeral" } }
+  ]
+  ```
+- Generation prompt must specify:
+  - Use `##` for headings (not `#`) to avoid conflict with page title
+  - Mermaid diagrams: use only `graph TD` or `sequenceDiagram` types, wrap node labels with special characters in quotes
+  - 1000-1500 words, narrative style
+  - Begin with engaging opening, organize into 3-5 sections
 - Return { content, existingLesson } (existingLesson is null or the existing lesson info)
 - Do NOT save to database — this is preview only
+- Error envelope { error, code }
 
 - [ ] **Step 4: Create POST /api/admin/lessons/save**
 
-- Receive { topicId, title, content, educationLevel, order, difficultyLevel, archiveExisting }
-- If archiveExisting is true and a lesson with same title exists under that topic:
-  - Copy existing lesson to LessonArchive
+- Receive { topicId, title, content, educationLevel, archiveExisting }
+- Auto-calculate `order`: count existing lessons for the topic + 1
+- Default `difficultyLevel` to 1
+- Independently look up existing lesson by title + topicId (do NOT trust client-provided IDs)
+- If archiveExisting is true and existing lesson found:
+  - Copy existing lesson to LessonArchive (including educationLevel)
   - Update existing lesson with new content, educationLevel
 - If no existing lesson, create new lesson
 - Return the saved lesson
+- Error envelope { error, code }
 
 - [ ] **Step 5: Run tests and build**
 
@@ -141,7 +165,7 @@ POST: Create a new topic with name, description, optional parentTopicId.
 - [ ] **Step 1: Create the admin page**
 
 Client component with:
-- Topic dropdown (fetched from GET /api/admin/topics)
+- Topic dropdown (fetched from GET /api/admin/topics — returns ALL topics, not just top-level)
 - "Create new topic" option that shows name + description + parent topic fields
 - Lesson title text input
 - Education level dropdown (High School, College, Graduate)
