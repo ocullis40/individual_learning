@@ -138,8 +138,8 @@ Important: You must embed the mermaid diagrams directly into the lesson content 
       messages.push({ role: "user", content: toolResults });
     } else if (response.stop_reason === "end_turn") {
       const text = response.content
-        .filter((block: { type: string }) => block.type === "text")
-        .map((block: { type: "text"; text: string }) => block.text)
+        .filter((block) => block.type === "text")
+        .map((block) => ("text" in block ? block.text : ""))
         .join("\n\n");
 
       const saveLessonStep = steps.find(
