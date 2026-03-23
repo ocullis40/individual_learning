@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parsePagination } from "@/lib/pagination";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const topics = await prisma.topic.findMany({
-      include: {
-        parentTopic: { select: { id: true, name: true } },
-      },
-      orderBy: { name: "asc" },
-    });
+    const { searchParams } = new URL(request.url);
+    const { page, limit, skip } = parsePagination(searchParams);
 
-    return NextResponse.json({ data: topics });
+    const [topics, total] = await Promise.all([
+      prisma.topic.findMany({
+        include: {
+          parentTopic: { select: { id: true, name: true } },
+        },
+        orderBy: { name: "asc" },
+        skip,
+        take: limit,
+      }),
+      prisma.topic.count(),
+    ]);
+
+    return NextResponse.json({ data: topics, total, page, limit });
   } catch {
     return NextResponse.json(
       { error: "Failed to fetch topics", code: "INTERNAL_ERROR" },
