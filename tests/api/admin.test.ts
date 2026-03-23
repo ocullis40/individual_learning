@@ -53,9 +53,6 @@ describe("Admin API - data layer", () => {
     });
 
     it("allows educationLevel to be null", async () => {
-      const lesson = await prisma.lesson.findUnique({
-        where: { id: lessonId },
-      });
       // The lesson we created has a value; create one without
       const nullLesson = await prisma.lesson.create({
         data: {
