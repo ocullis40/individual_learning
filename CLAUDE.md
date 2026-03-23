@@ -25,6 +25,27 @@ Reference these skills when working with Stride tasks:
 - `.stride.md` — Project hooks (before_doing, after_doing, before_review)
 - `.stride_auth.md` — API credentials (gitignored, never commit)
 
+### Stride Workflow Rules
+- **ALL code changes must go through Stride** — no exceptions, regardless of size. Create task → claim → implement → run hooks → complete → user reviews.
+- **When dispatching subagents**, fetch the task from the Stride API and include the exact `acceptance_criteria` in the subagent prompt — never paraphrase.
+- **User moves tasks to Ready** on the Stride website before agents can claim them.
+- **All tasks use `needs_review: true`** so the developer reviews every piece of work.
+
+### Mandatory Code Review Before Commit
+After every task implementation, BEFORE committing:
+1. Dispatch a code review subagent that reads the git diff
+2. The reviewer checks: correctness, security, pattern consistency, missed edge cases, acceptance criteria compliance
+3. Display the findings to the user
+4. User decides what to address
+5. Only commit after the user approves
+
+This step is NOT optional. Never commit without running the code review subagent first.
+
+## Testing Strategy
+- **Data/API logic** — TDD from Stride acceptance criteria. Write failing tests first, then implement.
+- **UI components** — No automated tests. Manual review by the developer in the browser.
+- **Integration flows** — Happy-path tests only (e.g., "generate quiz returns 10 questions"), not exhaustive.
+
 ## Key Technical Notes
 - **Prisma 7**: Import from `@/generated/prisma/client` (not `@prisma/client`). Uses adapter pattern with `@prisma/adapter-pg`.
 - **Database**: PostgreSQL, dev DB is `individual_learning_dev`, test DB is `individual_learning_test`
