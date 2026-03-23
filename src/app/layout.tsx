@@ -38,6 +38,9 @@ export default function RootLayout({
               <Link href="/topics" className="text-gray-600 hover:text-gray-900">
                 Topics
               </Link>
+              <Link href="/admin/lessons" className="text-gray-600 hover:text-gray-900">
+                Admin
+              </Link>
             </nav>
           </div>
         </header>

@@ -31,20 +31,19 @@ function MermaidDiagram({ code }: { code: string }) {
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="relative rounded-2xl bg-white p-12 shadow-2xl"
-            style={{ minWidth: "60vw", minHeight: "40vh" }}
+            className="relative max-h-[95vh] max-w-[95vw] overflow-auto rounded-2xl bg-white p-8 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 z-10 rounded-full bg-white p-2 text-gray-500 shadow hover:bg-gray-100 hover:text-gray-700"
+              className="sticky top-0 right-0 z-10 float-right rounded-full bg-white p-2 text-gray-500 shadow hover:bg-gray-100 hover:text-gray-700"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
             <div
-              className="flex items-center justify-center [&_svg]:h-auto [&_svg]:max-h-[70vh] [&_svg]:w-auto [&_svg]:min-w-[50vw]"
+              className="[&_svg]:h-auto [&_svg]:min-h-[50vh] [&_svg]:w-auto [&_svg]:scale-150 [&_svg]:origin-top-left [&_svg]:p-8"
               dangerouslySetInnerHTML={{ __html: svg }}
             />
           </div>

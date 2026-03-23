@@ -37,6 +37,7 @@ model Lesson {
   content         String
   difficultyLevel Int      @map("difficulty_level")
   order           Int
+  educationLevel  String?  @map("education_level")
   topicId         String   @map("topic_id")
   topic           Topic              @relation(fields: [topicId], references: [id])
   conversations   ChatConversation[]
