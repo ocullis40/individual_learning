@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { mockCreate, mockSearchExecute, mockContentExecute, mockDiagramExecute, mockSaveExecute } =
+const { mockCreate, mockSearchExecute, mockContentExecute, mockDiagramExecute, mockSVGDiagramExecute, mockImageExecute, mockSaveExecute } =
   vi.hoisted(() => ({
     mockCreate: vi.fn(),
     mockSearchExecute: vi.fn(),
     mockContentExecute: vi.fn(),
     mockDiagramExecute: vi.fn(),
+    mockSVGDiagramExecute: vi.fn(),
+    mockImageExecute: vi.fn(),
     mockSaveExecute: vi.fn(),
   }));
 
@@ -60,6 +62,39 @@ vi.mock("@/agents/tools/generate-diagram", () => ({
   },
 }));
 
+vi.mock("@/agents/tools/generate-svg", () => ({
+  generateSVGDiagram: {
+    name: "generateSVGDiagram",
+    description: "Generate a technical SVG diagram",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        concept: { type: "string" },
+        style: { type: "string" },
+      },
+      required: ["concept"],
+    },
+    execute: mockSVGDiagramExecute,
+  },
+}));
+
+vi.mock("@/agents/tools/generate-image", () => ({
+  generateImage: {
+    name: "generateImage",
+    description: "Generate a realistic image using DALL-E",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        prompt: { type: "string" },
+        filename: { type: "string" },
+        lessonId: { type: "string" },
+      },
+      required: ["prompt", "filename", "lessonId"],
+    },
+    execute: mockImageExecute,
+  },
+}));
+
 vi.mock("@/agents/tools/save-lesson", () => ({
   saveLesson: {
     name: "saveLesson",
@@ -92,6 +127,8 @@ describe("runContentAgent", () => {
     mockSearchExecute.mockClear();
     mockContentExecute.mockClear();
     mockDiagramExecute.mockClear();
+    mockSVGDiagramExecute.mockClear();
+    mockImageExecute.mockClear();
     mockSaveExecute.mockClear();
   });
 
@@ -195,7 +232,7 @@ describe("runContentAgent", () => {
     // Claude always requests a tool, never ends
     mockSearchExecute.mockResolvedValue({ lessons: [] });
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 15; i++) {
       mockCreate.mockResolvedValueOnce({
         stop_reason: "tool_use",
         content: [
@@ -213,7 +250,7 @@ describe("runContentAgent", () => {
 
     expect(result.success).toBe(false);
     expect(result.message).toContain("maximum iterations");
-    expect(result.steps).toHaveLength(10);
+    expect(result.steps).toHaveLength(15);
   });
 
   it("sets is_error true when tool execution throws", async () => {
@@ -285,11 +322,13 @@ describe("runContentAgent", () => {
     await runContentAgent(goal);
 
     const firstCall = mockCreate.mock.calls[0][0];
-    expect(firstCall.tools).toHaveLength(4);
+    expect(firstCall.tools).toHaveLength(6);
     expect(firstCall.tools.map((t: { name: string }) => t.name)).toEqual([
       "searchExistingLessons",
       "generateContent",
       "generateDiagram",
+      "generateSVGDiagram",
+      "generateImage",
       "saveLesson",
     ]);
     for (const tool of firstCall.tools) {
