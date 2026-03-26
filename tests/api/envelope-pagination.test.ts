@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma";
  */
 
 describe("API envelope and pagination", () => {
-  let topicIds: string[] = [];
+  const topicIds: string[] = [];
   let lessonId: string;
 
   beforeAll(async () => {

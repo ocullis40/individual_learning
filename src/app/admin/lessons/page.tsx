@@ -95,7 +95,7 @@ export default function AdminLessonsPage() {
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 150000); // 2.5 minutes
+      const timeout = setTimeout(() => controller.abort(), 255000); // 4.25 minutes (exceeds server maxDuration)
 
       const res = await fetch("/api/admin/agent", {
         method: "POST",

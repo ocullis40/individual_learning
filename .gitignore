@@ -43,5 +43,9 @@ next-env.d.ts
 
 /src/generated/prisma
 
+# generated lesson images
+public/images/lessons/*
+!public/images/lessons/.gitkeep
+
 # stride auth
 .stride_auth.md

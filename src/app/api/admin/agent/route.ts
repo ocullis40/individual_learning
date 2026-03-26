@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { runContentAgent } from "@/agents/content-agent";
 
-export const maxDuration = 120;
+export const maxDuration = 240;
 
 export async function POST(request: Request) {
   try {

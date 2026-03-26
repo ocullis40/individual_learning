@@ -2,6 +2,8 @@ import { anthropic, CONTENT_MODEL } from "@/lib/anthropic";
 import { searchExistingLessons } from "./tools/search-lessons";
 import { generateContent } from "./tools/generate-content";
 import { generateDiagram } from "./tools/generate-diagram";
+import { generateSVGDiagram } from "./tools/generate-svg";
+import { generateImage } from "./tools/generate-image";
 import { saveLesson } from "./tools/save-lesson";
 
 interface AgentGoal {
@@ -24,8 +26,8 @@ interface AgentResult {
   steps: AgentStep[];
 }
 
-const tools = [searchExistingLessons, generateContent, generateDiagram, saveLesson];
-const MAX_ITERATIONS = 10;
+const tools = [searchExistingLessons, generateContent, generateDiagram, generateSVGDiagram, generateImage, saveLesson];
+const MAX_ITERATIONS = 8;
 
 const toolMap = new Map(tools.map((t) => [t.name, t]));
 
@@ -41,11 +43,22 @@ Education Level: ${goal.educationLevel}${goal.description ? `\nDescription: ${go
 Follow these steps in order:
 1. Search existing lessons under this topic to understand what already exists and avoid duplication.
 2. Generate the lesson content in a narrative storytelling style with structured headings.
-3. Generate 1-2 Mermaid diagrams (flowchart or sequence) that illustrate key concepts from the lesson.
-4. Compose the final lesson content by embedding the Mermaid diagrams within the markdown content using mermaid code fences (\`\`\`mermaid ... \`\`\`). The diagrams should be placed at relevant points in the content.
-5. Save the final lesson. The content field MUST include the full markdown with embedded mermaid code fences.
+3. Generate 1-2 visuals that illustrate key concepts from the lesson.
 
-Important: You must embed the mermaid diagrams directly into the lesson content before saving. Do not save content without diagrams.`;
+When creating visuals, choose the appropriate tool:
+- generateDiagram: For process flows, sequences, hierarchies, decision trees (Mermaid) — PREFERRED, fast
+- generateSVGDiagram: For technical schematics, cross-sections, structural diagrams, scientific illustrations — PREFERRED, fast
+- generateImage: For realistic scenes, photographs, artistic illustrations requiring photographic quality — LIMIT: max 1 per lesson, slow
+
+Use Mermaid or SVG diagrams as your primary visual tools. Only use generateImage (DALL-E) if the concept truly requires a realistic/photographic illustration, and never more than once per lesson.
+
+4. Compose the final lesson by embedding visuals:
+   - Mermaid diagrams: embed as \`\`\`mermaid code fences
+   - SVG diagrams: embed the raw <svg>...</svg> HTML directly in the markdown
+   - DALL-E images: embed as ![description](/images/lessons/{lessonId}/filename.png)
+5. Save the final lesson. The content field MUST include the full markdown with embedded visuals.
+
+Important: You must embed visuals directly into the lesson content before saving. Do not save content without visuals.`;
 
   const messages: Array<{ role: string; content: unknown }> = [
     {
@@ -63,7 +76,7 @@ Important: You must embed the mermaid diagrams directly into the lesson content 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const response = await anthropic.messages.create({
       model: CONTENT_MODEL,
-      max_tokens: 8192,
+      max_tokens: 4096,
       system: systemPrompt,
       tools: anthropicTools,
       messages: messages as Parameters<typeof anthropic.messages.create>[0]["messages"],
