@@ -27,7 +27,7 @@ interface AgentResult {
 }
 
 const tools = [searchExistingLessons, generateContent, generateDiagram, generateSVGDiagram, generateImage, saveLesson];
-const MAX_ITERATIONS = 15;
+const MAX_ITERATIONS = 8;
 
 const toolMap = new Map(tools.map((t) => [t.name, t]));
 
@@ -43,12 +43,14 @@ Education Level: ${goal.educationLevel}${goal.description ? `\nDescription: ${go
 Follow these steps in order:
 1. Search existing lessons under this topic to understand what already exists and avoid duplication.
 2. Generate the lesson content in a narrative storytelling style with structured headings.
-3. Generate visuals that illustrate key concepts from the lesson. Use up to 3 visuals per lesson total (across all types).
+3. Generate 1-2 visuals that illustrate key concepts from the lesson.
 
 When creating visuals, choose the appropriate tool:
-- generateDiagram: For process flows, sequences, hierarchies, decision trees (Mermaid)
-- generateSVGDiagram: For technical schematics, cross-sections, structural diagrams, scientific illustrations
-- generateImage: For realistic scenes, photographs, artistic illustrations requiring photographic quality
+- generateDiagram: For process flows, sequences, hierarchies, decision trees (Mermaid) — PREFERRED, fast
+- generateSVGDiagram: For technical schematics, cross-sections, structural diagrams, scientific illustrations — PREFERRED, fast
+- generateImage: For realistic scenes, photographs, artistic illustrations requiring photographic quality — LIMIT: max 1 per lesson, slow
+
+Use Mermaid or SVG diagrams as your primary visual tools. Only use generateImage (DALL-E) if the concept truly requires a realistic/photographic illustration, and never more than once per lesson.
 
 4. Compose the final lesson by embedding visuals:
    - Mermaid diagrams: embed as \`\`\`mermaid code fences
@@ -74,7 +76,7 @@ Important: You must embed visuals directly into the lesson content before saving
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const response = await anthropic.messages.create({
       model: CONTENT_MODEL,
-      max_tokens: 8192,
+      max_tokens: 4096,
       system: systemPrompt,
       tools: anthropicTools,
       messages: messages as Parameters<typeof anthropic.messages.create>[0]["messages"],

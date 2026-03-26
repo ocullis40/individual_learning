@@ -232,7 +232,7 @@ describe("runContentAgent", () => {
     // Claude always requests a tool, never ends
     mockSearchExecute.mockResolvedValue({ lessons: [] });
 
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 8; i++) {
       mockCreate.mockResolvedValueOnce({
         stop_reason: "tool_use",
         content: [
@@ -250,7 +250,7 @@ describe("runContentAgent", () => {
 
     expect(result.success).toBe(false);
     expect(result.message).toContain("maximum iterations");
-    expect(result.steps).toHaveLength(15);
+    expect(result.steps).toHaveLength(8);
   });
 
   it("sets is_error true when tool execution throws", async () => {
