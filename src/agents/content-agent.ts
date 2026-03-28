@@ -43,14 +43,14 @@ Education Level: ${goal.educationLevel}${goal.description ? `\nDescription: ${go
 Follow these steps in order:
 1. Search existing lessons under this topic to understand what already exists and avoid duplication.
 2. Generate the lesson content in a narrative storytelling style with structured headings.
-3. Generate 1-2 visuals that illustrate key concepts from the lesson.
+3. Generate 2-3 visuals that illustrate key concepts from the lesson.
 
 When creating visuals, choose the appropriate tool:
-- generateDiagram: For process flows, sequences, hierarchies, decision trees (Mermaid) — PREFERRED, fast
-- generateSVGDiagram: For technical schematics, cross-sections, structural diagrams, scientific illustrations — PREFERRED, fast
-- generateImage: For realistic scenes, photographs, artistic illustrations requiring photographic quality — LIMIT: max 1 per lesson, slow
+- generateDiagram: For process flows, sequences, hierarchies, decision trees (Mermaid) — fast
+- generateSVGDiagram: For technical schematics, cross-sections, structural diagrams, scientific illustrations — fast
+- generateImage: For realistic scenes, photographs, artistic illustrations requiring photographic quality — slow but visually rich
 
-Use Mermaid or SVG diagrams as your primary visual tools. Only use generateImage (DALL-E) if the concept truly requires a realistic/photographic illustration, and never more than once per lesson.
+You MUST generate exactly 1 DALL-E image per lesson using generateImage. Choose the most visually compelling concept for the DALL-E image. Use Mermaid or SVG diagrams for the remaining visuals.
 
 4. Compose the final lesson by embedding visuals:
    - Mermaid diagrams: embed as \`\`\`mermaid code fences
