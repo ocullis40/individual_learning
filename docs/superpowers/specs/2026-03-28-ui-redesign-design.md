@@ -30,6 +30,8 @@ All visual tokens defined in `globals.css` on `:root` (light) and `.dark` (dark)
 
 The existing `globals.css` `!important` overrides on `html` and `body` (`color-scheme: light !important`, `background-color: #ffffff !important`, `color: #171717 !important`) must be removed and replaced with the CSS custom properties above. These overrides would prevent dark mode from working.
 
+Dark mode properties are defined using `html.dark { ... }` in `globals.css`. This is compatible with the existing `@custom-variant dark (&:is(.dark *))` directive which enables Tailwind's `dark:` utilities on descendants of the `.dark` element.
+
 ### Card Component
 
 The fundamental building block. All distinct content sections are cards:
@@ -110,7 +112,7 @@ Full-width lesson content:
 ### Admin Page (`/admin/lessons`)
 
 Same card system as student-facing pages:
-- Form lives inside a card with `p-6` padding
+- Form lives inside a card with `p-6` padding, centered within the `max-w-5xl` container using `max-w-2xl mx-auto` for the card itself (keeps the form narrow and readable)
 - Topic selector, lesson title/description, education level organized in clear sections
 - Generate button prominent at the bottom
 - Loading state: card with spinner and status message
@@ -147,7 +149,7 @@ Same card system as student-facing pages:
 ## Search Implementation
 
 Client-side filtering only (v1):
-- Topics list page fetches all topics (already does this)
+- Topics list page uses a server/client split: a server component fetches all topics, passes them as props to a client component that handles filtering and rendering
 - SearchBar filters in real-time against topic `name` and `description`
 - Case-insensitive substring match
 - Home page search bar navigates to `/topics?q=<query>`, topics page reads the param
