@@ -328,7 +328,7 @@ export default function AdminLessonsPage() {
             Agent is generating your lesson...
           </p>
           <p className="text-sm text-gray-500">
-            This can take 30-60 seconds. Please do not close this page.
+            This can take up to 4 minutes. Please do not close this page.
           </p>
         </div>
       )}
