@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Card } from "./Card";
 
 type QuizState = "idle" | "loading" | "taking" | "submitting" | "results" | "error";
 
@@ -123,10 +124,12 @@ export function QuizPanel({ topicId }: { topicId: string }) {
   if (state === "loading") {
     return (
       <section className="mt-8">
-        <div className="flex items-center gap-3 rounded-lg border border-gray-200 p-6">
-          <Spinner />
-          <span className="text-sm text-gray-600">Generating questions...</span>
-        </div>
+        <Card>
+          <div className="flex items-center gap-3">
+            <Spinner />
+            <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Generating questions...</span>
+          </div>
+        </Card>
       </section>
     );
   }
@@ -137,12 +140,12 @@ export function QuizPanel({ topicId }: { topicId: string }) {
 
     return (
       <section className="mt-8">
-        <div className="rounded-lg border border-gray-200 p-6">
+        <Card>
           <div className="mb-4 flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-500">
+            <span className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
               Question {currentIndex + 1} of {questions.length}
             </span>
-            <div className="h-2 flex-1 mx-4 rounded-full bg-gray-100">
+            <div className="h-2 flex-1 mx-4 rounded-full" style={{ backgroundColor: "var(--color-bg)" }}>
               <div
                 className="h-2 rounded-full bg-blue-600 transition-all"
                 style={{
@@ -152,10 +155,10 @@ export function QuizPanel({ topicId }: { topicId: string }) {
             </div>
           </div>
 
-          <p className="text-xs text-gray-400 mb-1">
+          <p className="text-xs mb-1" style={{ color: "var(--color-text-secondary)" }}>
             From: {question.lessonTitle}
           </p>
-          <p className="text-base font-medium text-gray-900 mb-4">
+          <p className="text-base font-medium mb-4" style={{ color: "var(--color-text)" }}>
             {question.question}
           </p>
 
@@ -164,7 +167,12 @@ export function QuizPanel({ topicId }: { topicId: string }) {
             onChange={(e) => setCurrentAnswer(e.target.value)}
             placeholder="Type your answer..."
             rows={3}
-            className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full resize-none rounded-lg border px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            style={{
+              borderColor: "var(--color-border)",
+              backgroundColor: "var(--color-surface)",
+              color: "var(--color-text)",
+            }}
           />
 
           <div className="mt-4 flex justify-end">
@@ -176,7 +184,7 @@ export function QuizPanel({ topicId }: { topicId: string }) {
               {isLastQuestion ? "Submit Quiz" : "Next"}
             </button>
           </div>
-        </div>
+        </Card>
       </section>
     );
   }
@@ -184,10 +192,12 @@ export function QuizPanel({ topicId }: { topicId: string }) {
   if (state === "submitting") {
     return (
       <section className="mt-8">
-        <div className="flex items-center gap-3 rounded-lg border border-gray-200 p-6">
-          <Spinner />
-          <span className="text-sm text-gray-600">Grading your answers...</span>
-        </div>
+        <Card>
+          <div className="flex items-center gap-3">
+            <Spinner />
+            <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>Grading your answers...</span>
+          </div>
+        </Card>
       </section>
     );
   }
@@ -195,12 +205,12 @@ export function QuizPanel({ topicId }: { topicId: string }) {
   if (state === "results" && results) {
     return (
       <section className="mt-8">
-        <div className="rounded-lg border border-gray-200 p-6">
+        <Card>
           <div className="mb-6 text-center">
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold" style={{ color: "var(--color-text)" }}>
               You scored {results.score}/{results.totalQuestions}
             </p>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm" style={{ color: "var(--color-text-secondary)" }}>
               Mastery level: <span className="font-medium">{results.masteryLevel}</span>
             </p>
           </div>
@@ -209,21 +219,22 @@ export function QuizPanel({ topicId }: { topicId: string }) {
             {results.feedback.map((item, idx) => (
               <div
                 key={idx}
-                className="rounded-lg border border-gray-100 bg-gray-50 p-4"
+                className="rounded-lg border p-4"
+                style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
               >
                 <div className="flex items-start gap-2">
                   <span className={`mt-0.5 text-lg leading-none ${item.correct ? "text-green-600" : "text-red-500"}`}>
                     {item.correct ? "\u2713" : "\u2717"}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium" style={{ color: "var(--color-text)" }}>
                       {questions[item.questionIndex]?.question}
                     </p>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm" style={{ color: "var(--color-text-secondary)" }}>
                       <span className="font-medium">Your answer:</span>{" "}
                       {answers[item.questionIndex]}
                     </p>
-                    <p className="mt-1 text-sm text-gray-700">{item.feedback}</p>
+                    <p className="mt-1 text-sm" style={{ color: "var(--color-text)" }}>{item.feedback}</p>
                     {item.suggestedReview && (
                       <p className="mt-2 rounded bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
                         Suggested review: {item.suggestedReview}
@@ -238,12 +249,13 @@ export function QuizPanel({ topicId }: { topicId: string }) {
           <div className="mt-6 flex justify-end">
             <button
               onClick={reset}
-              className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="rounded-lg border px-5 py-2 text-sm font-medium transition-colors"
+              style={{ borderColor: "var(--color-border)", color: "var(--color-text-secondary)" }}
             >
               Close
             </button>
           </div>
-        </div>
+        </Card>
       </section>
     );
   }

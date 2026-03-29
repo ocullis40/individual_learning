@@ -48,6 +48,7 @@ Concept: ${input.concept}${styleInstruction}
 Rules:
 - Output ONLY the SVG code, no explanation or markdown
 - Maximum ~200 lines of SVG
+- Use a LANDSCAPE or SQUARE viewBox (width >= height). NEVER make the height greater than the width. Aim for a viewBox like "0 0 800 400" or "0 0 600 500" — wide and compact.
 - Simple, clean, educational style
 - Use text labels to annotate important parts
 - Solid colors only, no gradients

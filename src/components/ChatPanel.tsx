@@ -10,7 +10,6 @@ interface Message {
 
 export function ChatPanel({ lessonId }: { lessonId: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isFullHeight, setIsFullHeight] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -123,7 +122,12 @@ export function ChatPanel({ lessonId }: { lessonId: string }) {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-6 py-4 shadow-lg transition-all hover:shadow-xl hover:border-blue-300"
+          className="flex items-center gap-3 rounded-2xl border px-6 py-4 shadow-lg transition-all hover:shadow-xl"
+          style={{
+            backgroundColor: "var(--color-surface)",
+            borderColor: "var(--color-border)",
+            color: "var(--color-text)",
+          }}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -139,7 +143,7 @@ export function ChatPanel({ lessonId }: { lessonId: string }) {
               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
             />
           </svg>
-          <span className="text-base font-medium text-gray-700">Ask a question about this lesson</span>
+          <span className="text-base font-medium">Ask a question about this lesson</span>
         </button>
       </div>
     );
@@ -147,36 +151,28 @@ export function ChatPanel({ lessonId }: { lessonId: string }) {
 
   // Expanded drawer
   return (
-    <div className={`fixed right-6 z-50 flex w-[420px] flex-col rounded-2xl border border-gray-200 bg-white shadow-2xl transition-all ${
-      isFullHeight ? "top-4 bottom-4" : "bottom-4 h-[45vh]"
-    }`}>
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-        <h2 className="text-sm font-semibold text-gray-700">Lesson Chat</h2>
-        <div className="flex items-center gap-1">
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-40 bg-black/20"
+        onClick={() => setIsOpen(false)}
+      />
+
+      {/* Drawer */}
+      <div
+        className="fixed right-0 top-0 bottom-0 z-50 flex w-[420px] flex-col border-l shadow-2xl"
+        style={{
+          backgroundColor: "var(--color-surface)",
+          borderColor: "var(--color-border)",
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: "var(--color-border)" }}>
+          <h2 className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>Lesson Chat</h2>
           <button
-            onClick={() => setIsFullHeight(!isFullHeight)}
-            className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-            aria-label={isFullHeight ? "Shrink chat" : "Expand chat"}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              {isFullHeight ? (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
-              )}
-            </svg>
-          </button>
-          <button
-            onClick={() => { setIsOpen(false); setIsFullHeight(false); }}
-            className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            onClick={() => setIsOpen(false)}
+            className="rounded p-1 transition-colors"
+            style={{ color: "var(--color-text-secondary)" }}
             aria-label="Close chat"
           >
             <svg
@@ -191,53 +187,62 @@ export function ChatPanel({ lessonId }: { lessonId: string }) {
             </svg>
           </button>
         </div>
-      </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        {messages.length === 0 && (
-          <p className="text-center text-sm text-gray-400">
-            Ask anything about this lesson
-          </p>
-        )}
-        <div className="flex flex-col gap-3">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`whitespace-pre-wrap rounded-xl px-4 py-2.5 text-sm ${
-                msg.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-800"
-              }`}
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          {messages.length === 0 && (
+            <p className="text-center text-sm" style={{ color: "var(--color-text-secondary)" }}>
+              Ask anything about this lesson
+            </p>
+          )}
+          <div className="flex flex-col gap-3">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`whitespace-pre-wrap rounded-xl px-4 py-2.5 text-sm ${
+                  msg.role === "user"
+                    ? "bg-blue-600 text-white"
+                    : ""
+                }`}
+                style={msg.role === "assistant" ? {
+                  backgroundColor: "color-mix(in srgb, var(--color-border) 30%, var(--color-surface))",
+                  color: "var(--color-text)",
+                } : undefined}
+              >
+                {msg.content}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+
+        {/* Input */}
+        <div className="border-t px-4 py-3" style={{ borderColor: "var(--color-border)" }}>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your question..."
+            rows={3}
+            className="w-full resize-none rounded-lg border px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            style={{
+              borderColor: "var(--color-border)",
+              backgroundColor: "var(--color-surface)",
+              color: "var(--color-text)",
+            }}
+            disabled={isLoading}
+          />
+          <div className="mt-2 flex justify-end">
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading}
+              className="rounded-lg bg-blue-600 px-5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {msg.content}
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
+              Send
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* Input */}
-      <div className="border-t border-gray-200 px-4 py-3">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your question..."
-          rows={3}
-          className="w-full resize-none rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          disabled={isLoading}
-        />
-        <div className="mt-2 flex justify-end">
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
-            className="rounded-lg bg-blue-600 px-5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Send
-          </button>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }

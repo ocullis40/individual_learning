@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { TopicCard } from "@/components/TopicCard";
+import { TopicListClient } from "@/components/TopicListClient";
 
 export default async function TopicsPage() {
   const topics = await prisma.topic.findMany({
@@ -12,20 +12,11 @@ export default async function TopicsPage() {
   });
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="text-3xl font-bold">Topics</h1>
-      <p className="mt-2 text-gray-600">Choose a topic to start learning.</p>
-      <div className="mt-8 grid gap-4">
-        {topics.map((topic) => (
-          <TopicCard
-            key={topic.id}
-            id={topic.id}
-            name={topic.name}
-            description={topic.description}
-            lessonCount={topic._count.lessons}
-            childTopicCount={topic.childTopics.length}
-          />
-        ))}
+    <main className="mx-auto max-w-5xl px-4 py-12">
+      <h1 className="text-3xl font-bold" style={{ color: "var(--color-text)" }}>Topics</h1>
+      <p className="mt-2" style={{ color: "var(--color-text-secondary)" }}>Choose a topic to start learning.</p>
+      <div className="mt-8">
+        <TopicListClient topics={JSON.parse(JSON.stringify(topics))} />
       </div>
     </main>
   );

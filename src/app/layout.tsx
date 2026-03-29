@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,21 +27,36 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <header className="border-b border-gray-200 bg-white">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-            <Link href="/" className="text-xl font-bold">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.getItem('theme') === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-screen" style={{ backgroundColor: "var(--color-bg)" }}>
+        <header className="border-b" style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-surface)" }}>
+          <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
+            <Link href="/" className="text-xl font-bold" style={{ color: "var(--color-text)" }}>
               Adaptive Learning
             </Link>
-            <nav className="flex gap-6">
-              <Link href="/topics" className="text-gray-600 hover:text-gray-900">
+            <nav className="flex items-center gap-6">
+              <Link href="/topics" className="transition-colors hover:text-[var(--color-accent)]" style={{ color: "var(--color-text-secondary)" }}>
                 Topics
               </Link>
-              <Link href="/admin/lessons" className="text-gray-600 hover:text-gray-900">
+              <Link href="/admin/lessons" className="transition-colors hover:text-[var(--color-accent)]" style={{ color: "var(--color-text-secondary)" }}>
                 Admin
               </Link>
+              <ThemeToggle />
             </nav>
           </div>
         </header>
