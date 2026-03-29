@@ -30,6 +30,7 @@ export default function AdminLessonsPage() {
   const [topicId, setTopicId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [generationInstructions, setGenerationInstructions] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
 
   // New topic fields
@@ -101,7 +102,7 @@ export default function AdminLessonsPage() {
       const res = await fetch("/api/admin/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topicId, title: title.trim(), educationLevel, ...(description.trim() ? { description: description.trim() } : {}) }),
+        body: JSON.stringify({ topicId, title: title.trim(), educationLevel, ...(description.trim() ? { description: description.trim() } : {}), ...(generationInstructions.trim() ? { generationInstructions: generationInstructions.trim() } : {}) }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -135,6 +136,7 @@ export default function AdminLessonsPage() {
     setTopicId("");
     setTitle("");
     setDescription("");
+    setGenerationInstructions("");
     setEducationLevel("");
     setCreatingTopic(false);
     setNewTopicName("");
@@ -312,6 +314,25 @@ export default function AdminLessonsPage() {
                   className="mt-1 block w-full resize-none rounded-md border px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   style={inputStyle}
                 />
+              </div>
+
+              {/* Generation instructions */}
+              <div>
+                <label htmlFor="generationInstructions" className="block text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
+                  Generation Instructions <span style={{ color: "var(--color-text-secondary)" }}>(optional)</span>
+                </label>
+                <textarea
+                  id="generationInstructions"
+                  value={generationInstructions}
+                  onChange={(e) => setGenerationInstructions(e.target.value)}
+                  placeholder="e.g. Focus on safety protocols, include a comparison table, avoid mentioning weapons applications"
+                  rows={3}
+                  className="mt-1 block w-full resize-none rounded-md border px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  style={inputStyle}
+                />
+                <p className="mt-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>
+                  These instructions guide the AI when generating content. They are not displayed on the lesson page.
+                </p>
               </div>
 
               {/* Education level */}

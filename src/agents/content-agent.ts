@@ -11,6 +11,7 @@ interface AgentGoal {
   title: string;
   educationLevel: string;
   description?: string;
+  generationInstructions?: string;
 }
 
 interface AgentStep {
@@ -38,7 +39,7 @@ export async function runContentAgent(goal: AgentGoal): Promise<AgentResult> {
 
 Topic ID: ${goal.topicId}
 Lesson Title: ${goal.title}
-Education Level: ${goal.educationLevel}${goal.description ? `\nDescription: ${goal.description}` : ""}
+Education Level: ${goal.educationLevel}${goal.description ? `\nDescription: ${goal.description}` : ""}${goal.generationInstructions ? `\nGeneration Instructions: ${goal.generationInstructions}` : ""}
 
 Follow these steps in order:
 1. Search existing lessons under this topic to understand what already exists and avoid duplication.
