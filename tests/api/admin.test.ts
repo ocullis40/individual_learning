@@ -52,22 +52,18 @@ describe("Admin API - data layer", () => {
       expect(lesson.educationLevel).toBe("high_school");
     });
 
-    it("allows educationLevel to be null", async () => {
-      // The lesson we created has a value; create one without
-      const nullLesson = await prisma.lesson.create({
-        data: {
-          title: "Lesson Without Level",
-          content: "No level",
-          difficultyLevel: 1,
-          order: 2,
-          topicId: parentTopicId,
-        },
-      });
-
-      expect(nullLesson.educationLevel).toBeNull();
-
-      // cleanup
-      await prisma.lesson.delete({ where: { id: nullLesson.id } });
+    it("requires educationLevel to be provided", async () => {
+      await expect(
+        prisma.lesson.create({
+          data: {
+            title: "Lesson Without Level",
+            content: "No level",
+            difficultyLevel: 1,
+            order: 2,
+            topicId: parentTopicId,
+          } as any,
+        })
+      ).rejects.toThrow();
     });
   });
 

@@ -28,6 +28,7 @@ describe("Topics data layer", () => {
         difficultyLevel: 1,
         order: 1,
         topicId: parent.id,
+        educationLevel: "college",
       },
     });
     lessonId = lesson.id;

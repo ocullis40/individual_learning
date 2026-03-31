@@ -33,6 +33,7 @@ describe("API envelope and pagination", () => {
         difficultyLevel: 1,
         order: 1,
         topicId: topicIds[0],
+        educationLevel: "college",
       },
     });
     lessonId = lesson.id;

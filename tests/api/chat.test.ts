@@ -21,7 +21,7 @@ describe("Chat API data layer", () => {
     });
     testTopicId = topic.id;
     const lesson = await prisma.lesson.create({
-      data: { title: "Chat API Lesson", content: "test", difficultyLevel: 1, order: 1, topicId: topic.id },
+      data: { title: "Chat API Lesson", content: "test", difficultyLevel: 1, order: 1, topicId: topic.id, educationLevel: "college" },
     });
     testLessonId = lesson.id;
 

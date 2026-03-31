@@ -30,6 +30,7 @@ describe("Database schema", () => {
         difficultyLevel: 1,
         order: 1,
         topicId: topic.id,
+        educationLevel: "college",
       },
     });
     cleanupIds.lessons.push(lesson.id);

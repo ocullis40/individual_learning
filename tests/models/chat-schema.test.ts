@@ -22,7 +22,7 @@ describe("Chat schema", () => {
     });
     cleanupTopicIds.push(topic.id);
     const lesson = await prisma.lesson.create({
-      data: { title: "Chat Test Lesson", content: "test", difficultyLevel: 1, order: 1, topicId: topic.id },
+      data: { title: "Chat Test Lesson", content: "test", difficultyLevel: 1, order: 1, topicId: topic.id, educationLevel: "college" },
     });
     const conversation = await prisma.chatConversation.create({
       data: { lessonId: lesson.id, userId: "dev-user" },
@@ -38,7 +38,7 @@ describe("Chat schema", () => {
     });
     cleanupTopicIds.push(topic.id);
     const lesson = await prisma.lesson.create({
-      data: { title: "Chat Msg Lesson", content: "test", difficultyLevel: 1, order: 1, topicId: topic.id },
+      data: { title: "Chat Msg Lesson", content: "test", difficultyLevel: 1, order: 1, topicId: topic.id, educationLevel: "college" },
     });
     const conversation = await prisma.chatConversation.create({
       data: { lessonId: lesson.id, userId: "dev-user" },

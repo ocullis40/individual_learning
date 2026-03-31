@@ -63,6 +63,7 @@ describe("Planner Schema", () => {
         content: "# Test",
         difficultyLevel: 1,
         order: 1,
+        educationLevel: "college",
       },
     });
 
