@@ -52,6 +52,7 @@ async function main() {
       title: "What is Nuclear Energy?",
       order: 1,
       difficultyLevel: 1,
+      educationLevel: "college",
       topicId: nuclearEnergy.id,
       content: `# What is Nuclear Energy?
 
@@ -124,6 +125,7 @@ The story of nuclear energy is far from over. As the world grapples with the twi
       title: "How Nuclear Fission Works",
       order: 1,
       difficultyLevel: 2,
+      educationLevel: "college",
       topicId: nuclearFission.id,
       content: `# How Nuclear Fission Works
 
@@ -236,6 +238,7 @@ The newest generation of reactor designs — the **AP1000**, the **EPR**, and ot
       title: "Nuclear Fusion: The Power of the Stars",
       order: 1,
       difficultyLevel: 2,
+      educationLevel: "college",
       topicId: nuclearFusion.id,
       content: `# Nuclear Fusion: The Power of the Stars
 
