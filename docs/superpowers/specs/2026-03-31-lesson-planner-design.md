@@ -56,7 +56,7 @@ The planning chat Claude should:
 **LessonPlan**
 - `id` — UUID primary key
 - `topicId` — FK to Topic
-- `educationLevel` — enum: high_school, college, graduate
+- `educationLevel` — enum: k2, grades_3_5, grades_6_8, high_school, college, graduate
 - `status` — enum: planning, generating, completed
 - `chatHistory` — JSON array of chat messages (role + content)
 - `createdAt`, `updatedAt`
@@ -86,6 +86,23 @@ The planning chat Claude should:
 ### Changes to Existing Models
 
 **Lesson** — no schema changes, but image references in markdown content will now point to LessonImage records rather than being standalone strings.
+
+## Education Level Differentiation
+
+The content agent's system prompt includes structured guidance per education level so Claude produces appropriately leveled content, not just a label.
+
+| Level | Reading Level | Sentence Length | Vocabulary | Concept Approach |
+|-------|--------------|-----------------|------------|-----------------|
+| K-2 | Very simple | 5-10 words | Common words only, define new terms inline | Analogies to everyday life, no abstraction |
+| 3-5 | Elementary | 10-15 words | Some domain terms with definitions | Simple cause-and-effect, concrete examples |
+| 6-8 | Middle school | 15-20 words | Domain vocabulary introduced gradually | Some abstraction, structured reasoning |
+| High School | Moderate | No limit | Technical terms with context | Full abstraction, critical analysis |
+| College | Advanced | No limit | Assumed domain familiarity | Deep analysis, primary sources |
+| Graduate | Expert | No limit | Specialist terminology | Research-level, nuanced arguments |
+
+This table is included verbatim in the content generation prompt. Both the planning chat and the content agent receive it so Claude can plan and write at the correct level.
+
+This will need iteration — the guidelines are a starting point and may need tuning based on actual generated output.
 
 ## Architecture
 
