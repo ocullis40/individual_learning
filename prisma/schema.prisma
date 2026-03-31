@@ -26,6 +26,7 @@ model Topic {
   lessons       Lesson[]
   topicMastery  TopicMastery[]
   quizAttempts  QuizAttempt[]
+  lessonPlans   LessonPlan[]
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("topics")
@@ -41,6 +42,8 @@ model Lesson {
   topicId         String   @map("topic_id")
   topic           Topic              @relation(fields: [topicId], references: [id])
   conversations   ChatConversation[]
+  plannedLessons  PlannedLesson[]
+  images          LessonImage[]
   createdAt       DateTime           @default(now()) @map("created_at")
 
   @@map("lessons")
@@ -104,4 +107,52 @@ model ChatMessage {
   createdAt      DateTime         @default(now()) @map("created_at")
 
   @@map("chat_messages")
+}
+
+model LessonPlan {
+  id              String          @id @default(cuid())
+  topicId         String          @map("topic_id")
+  topic           Topic           @relation(fields: [topicId], references: [id])
+  educationLevel  String          @map("education_level")
+  status          String          @default("planning")
+  chatHistory     Json            @default("[]") @map("chat_history")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  plannedLessons  PlannedLesson[]
+
+  @@map("lesson_plans")
+}
+
+model PlannedLesson {
+  id                      String      @id @default(cuid())
+  planId                  String      @map("plan_id")
+  plan                    LessonPlan  @relation(fields: [planId], references: [id])
+  title                   String
+  outline                 String?
+  generationInstructions  String?     @map("generation_instructions")
+  order                   Int
+  status                  String      @default("pending")
+  lessonId                String?     @unique @map("lesson_id")
+  lesson                  Lesson?     @relation(fields: [lessonId], references: [id])
+  createdAt               DateTime    @default(now()) @map("created_at")
+  updatedAt               DateTime    @updatedAt @map("updated_at")
+
+  @@map("planned_lessons")
+}
+
+model LessonImage {
+  id          String   @id @default(cuid())
+  lessonId    String   @map("lesson_id")
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  tool        String
+  prompt      String
+  description String
+  path        String?
+  status      String   @default("planned")
+  order       Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("lesson_images")
 }
